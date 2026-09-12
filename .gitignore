@@ -1,9 +1,10 @@
 # Virtual Environment
 venv/
-env/
-ENV/
-.venv/
-
+.env
+__pycache__/
+*.pyc
+instance/
+static/uploads/*
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
