@@ -1,0 +1,237 @@
+{% extends "base.html" %}
+
+{% block title %}Order #{{ order.id }} Tracking | Local Tailor Connect{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="dashboard-header">
+        <div class="dashboard-title">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 6px;">
+                <h1>Order <span class="gradient-text">#{{ order.id }}</span></h1>
+                <span class="status-badge status-{{ order.status }}" style="font-size: 0.9rem;">
+                    {{ order.status_display }}
+                </span>
+            </div>
+            <p>{{ order.clothing_type }} &bull; Assigned to <strong>{{ order.tailor.shop_name }}</strong></p>
+        </div>
+        <div style="display: flex; gap: 12px;">
+            <a href="{{ url_for('customer.messages', user_id=order.tailor.user_id, order_id=order.id) }}" class="btn btn-secondary">
+                💬 Chat with Tailor
+            </a>
+            <a href="{{ url_for('orders.list_orders') }}" class="btn btn-outline">&larr; Back to Orders</a>
+        </div>
+    </div>
+
+    <!-- Live Stage Pipeline Tracker -->
+    <div class="order-tracker">
+        <div class="tracker-header">
+            <div>
+                <h3>Production Lifecycle Pipeline</h3>
+                <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 2px;">
+                    Real-time status updates provided directly by your master tailor.
+                </p>
+            </div>
+            <div style="font-weight: 700; font-size: 1.1rem; color: var(--accent-primary);">
+                {{ order.progress_percentage }}% Complete
+            </div>
+        </div>
+
+        <div class="progress-bar-container">
+            <div class="progress-bar-fill" style="width: {{ order.progress_percentage }}%;"></div>
+        </div>
+
+        {% set stages = [
+            ('pending', 'Pending Quote'),
+            ('quoted', 'Quotation Sent'),
+            ('confirmed', 'Confirmed'),
+            ('cutting', 'Cutting'),
+            ('stitching', 'Stitching'),
+            ('alteration', 'Alteration'),
+            ('quality_check', 'Quality Check'),
+            ('ready', 'Ready'),
+            ('delivered', 'Delivered')
+        ] %}
+
+        <div class="stages-pipeline">
+            {% set passed = true %}
+            {% for code, label in stages %}
+                {% set is_current = (order.status == code) %}
+                <div class="stage-step {% if is_current %}active{% elif order.progress_percentage >= 100 or (order.status != 'pending' and loop.index0 < 4 and order.progress_percentage > 35) %}completed{% endif %}">
+                    <div class="stage-dot">
+                        {% if is_current %}
+                            ●
+                        {% elif order.status == 'delivered' %}
+                            ✓
+                        {% else %}
+                            {{ loop.index }}
+                        {% endif %}
+                    </div>
+                    <div class="stage-label">{{ label }}</div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Quotation Acceptance Box (if quoted) -->
+    {% if order.status == 'quoted' %}
+    <div class="glass-card" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(16, 185, 129, 0.15) 100%); border-color: #34d399; margin-bottom: 32px; padding: 28px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;">
+            <div>
+                <h3 style="color: #34d399; margin-bottom: 6px;">🎉 Quotation Received from Tailor</h3>
+                <div style="font-size: 1.75rem; font-weight: 800; color: white;">
+                    {{ order.quotation|currency }}
+                </div>
+                {% if order.quotation_notes %}
+                    <p style="color: var(--text-secondary); margin-top: 8px; font-size: 0.9rem;">
+                        <strong>Tailor's Notes:</strong> {{ order.quotation_notes }}
+                    </p>
+                {% endif %}
+                {% if order.expected_date %}
+                    <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 4px;">
+                        Estimated Delivery / Ready Date: <strong>{{ order.expected_date|date }}</strong>
+                    </p>
+                {% endif %}
+            </div>
+
+            <form method="POST" action="{{ url_for('orders.accept_quotation', order_id=order.id) }}">
+                <button type="submit" class="btn btn-primary btn-lg" style="box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4);">
+                    Accept Quotation & Confirm Order ✓
+                </button>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Order Details Grid -->
+    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 28px;" class="order-detail-layout">
+        <div>
+            <!-- Garment & Requirements -->
+            <div class="glass-card" style="margin-bottom: 24px;">
+                <h3 style="margin-bottom: 16px;">Garment Specifications</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 18px; font-size: 0.95rem;">
+                    <div><span style="color: var(--text-muted);">Service:</span> <strong>{{ order.service_type|capitalize }}</strong></div>
+                    <div><span style="color: var(--text-muted);">Garment:</span> <strong>{{ order.clothing_type }}</strong></div>
+                    <div><span style="color: var(--text-muted);">Fulfillment:</span> <strong>{{ order.delivery_method|capitalize }}</strong></div>
+                    <div><span style="color: var(--text-muted);">Placed On:</span> <strong>{{ order.created_at|date }}</strong></div>
+                </div>
+
+                <h4 style="margin-bottom: 8px; font-size: 0.95rem;">Style Instructions & Requests:</h4>
+                <p style="color: var(--text-secondary); line-height: 1.6; background: rgba(255, 255, 255, 0.02); padding: 14px; border-radius: var(--radius-sm); border: 1px solid var(--border-glass);">
+                    {{ order.description }}
+                </p>
+
+                {% if order.reference_image %}
+                    <h4 style="margin: 20px 0 10px; font-size: 0.95rem;">Reference Design Image:</h4>
+                    <a href="{{ url_for('static', filename=order.reference_image) }}" target="_blank">
+                        <img src="{{ url_for('static', filename=order.reference_image) }}" alt="Reference Image" style="max-width: 240px; border-radius: var(--radius-sm); border: 1px solid var(--border-glass);">
+                    </a>
+                {% endif %}
+            </div>
+
+            <!-- Attached Measurements -->
+            {% if order.measurement %}
+            <div class="glass-card" style="margin-bottom: 24px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <h3>Attached Measurement Profile</h3>
+                    <span class="status-badge" style="background: rgba(99, 102, 241, 0.15); color: #818cf8;">
+                        {{ order.measurement.profile_name }} ({{ order.measurement.unit }})
+                    </span>
+                </div>
+
+                <div class="meas-metrics-grid">
+                    <div class="meas-metric-box"><div class="meas-metric-label">Chest</div><div class="meas-metric-val">{{ order.measurement.chest or '-' }}</div></div>
+                    <div class="meas-metric-box"><div class="meas-metric-label">Waist</div><div class="meas-metric-val">{{ order.measurement.waist or '-' }}</div></div>
+                    <div class="meas-metric-box"><div class="meas-metric-label">Hip</div><div class="meas-metric-val">{{ order.measurement.hip or '-' }}</div></div>
+                    <div class="meas-metric-box"><div class="meas-metric-label">Shoulder</div><div class="meas-metric-val">{{ order.measurement.shoulder or '-' }}</div></div>
+                    <div class="meas-metric-box"><div class="meas-metric-label">Sleeve</div><div class="meas-metric-val">{{ order.measurement.sleeve or '-' }}</div></div>
+                    <div class="meas-metric-box"><div class="meas-metric-label">Neck</div><div class="meas-metric-val">{{ order.measurement.neck or '-' }}</div></div>
+                    <div class="meas-metric-box"><div class="meas-metric-label">Inseam</div><div class="meas-metric-val">{{ order.measurement.inseam or '-' }}</div></div>
+                    <div class="meas-metric-box"><div class="meas-metric-label">Height</div><div class="meas-metric-val">{{ order.measurement.height or '-' }}</div></div>
+                </div>
+
+                {% if order.measurement.notes %}
+                    <p style="font-size: 0.82rem; color: var(--text-secondary); margin-top: 12px;">
+                        <em>Profile Note:</em> {{ order.measurement.notes }}
+                    </p>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <!-- Review Section (if completed) -->
+            {% if order.status == 'delivered' %}
+            <div class="glass-card">
+                {% if order.review %}
+                    <h3>Your Review for this Order</h3>
+                    <div class="rating-stars" style="margin: 8px 0;">
+                        {% for i in range(order.review.rating) %}★{% endfor %}
+                    </div>
+                    <p style="color: var(--text-secondary); font-size: 0.95rem;">{{ order.review.comment }}</p>
+                    <small style="color: var(--text-muted);">Posted {{ order.review.created_at|date }}</small>
+                {% else %}
+                    <h3>Share Your Tailoring Experience</h3>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem; margin: 8px 0 16px;">
+                        Your garment has been delivered! Rate the fit, stitching quality, and service provided.
+                    </p>
+                    <a href="{{ url_for('reviews.submit_review', order_id=order.id) }}" class="btn btn-primary">
+                        Write a Review & Rate Tailor ★
+                    </a>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Sidebar / Tailor & Delivery Info -->
+        <div>
+            <!-- Tailor Studio Info -->
+            <div class="glass-card" style="margin-bottom: 24px;">
+                <h4 style="margin-bottom: 14px;">Tailor Studio</h4>
+                <div style="display: flex; gap: 14px; align-items: center; margin-bottom: 14px;">
+                    <div class="tailor-avatar" style="width: 50px; height: 50px; font-size: 22px;">✂️</div>
+                    <div>
+                        <strong>{{ order.tailor.shop_name }}</strong>
+                        <div style="font-size: 0.8rem; color: var(--text-secondary);">📍 {{ order.tailor.city or 'Local' }}</div>
+                    </div>
+                </div>
+                <a href="{{ url_for('customer.tailor_details', tailor_id=order.tailor.id) }}" class="btn btn-secondary btn-sm" style="width: 100%; margin-bottom: 8px;">
+                    View Studio Profile
+                </a>
+                <a href="{{ url_for('customer.messages', user_id=order.tailor.user_id, order_id=order.id) }}" class="btn btn-outline btn-sm" style="width: 100%;">
+                    Send Message
+                </a>
+            </div>
+
+            <!-- Fulfillment & Dates -->
+            <div class="glass-card" style="margin-bottom: 24px;">
+                <h4 style="margin-bottom: 14px;">Fulfillment Details</h4>
+                <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 10px;">
+                    Method: <strong style="color: var(--text-primary);">{{ order.delivery_method|capitalize }}</strong>
+                </p>
+
+                {% if order.delivery_method == 'delivery' and order.delivery_address %}
+                    <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 12px;">
+                        <strong>Address:</strong><br>
+                        {{ order.delivery_address }}
+                    </p>
+                {% else %}
+                    <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 12px;">
+                        <strong>Workshop Pickup:</strong><br>
+                        {{ order.tailor.address or 'Contact tailor for address confirmation' }}
+                    </p>
+                {% endif %}
+
+                <div style="border-top: 1px solid var(--border-glass); padding-top: 12px; font-size: 0.85rem;">
+                    <span style="color: var(--text-muted);">Expected Date:</span>
+                    <strong>{{ order.expected_date|date if order.expected_date else 'To be scheduled' }}</strong>
+                </div>
+            </div>
+
+            <!-- Cancel Option if still pending -->
+            {% if order.status in ['pending', 'quoted'] %}
+            <form method="POST" action="{{ url_for('orders.cancel_order', order_id=order.id) }}" onsubmit="return confirm('Are you sure you want to cancel this order request?');">
+                <button type="submit" class="btn btn-danger btn-sm" style="width: 100%;">Cancel Order Request</button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

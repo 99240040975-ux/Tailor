@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}Client Reviews & Ratings | Tailor Studio{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 840px;">
+    <div class="dashboard-header">
+        <div class="dashboard-title">
+            <h1>Studio <span class="gradient-text">Ratings & Reviews</span></h1>
+            <p>Direct feedback and ratings from customers on completed tailor orders.</p>
+        </div>
+        <a href="{{ url_for('tailor.dashboard') }}" class="btn btn-secondary">&larr; Dashboard</a>
+    </div>
+
+    <!-- Rating Summary Banner -->
+    <div class="glass-card" style="margin-bottom: 28px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
+        <div style="display: flex; align-items: center; gap: 20px;">
+            <div style="font-size: 3rem; font-weight: 800; color: #fbbf24; line-height: 1;">
+                {{ tailor.rating }}
+            </div>
+            <div>
+                <div class="rating-stars" style="font-size: 1.2rem;">
+                    ★ ★ ★ ★ ★
+                </div>
+                <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 4px;">
+                    Average based on <strong>{{ tailor.total_reviews }}</strong> verified customer reviews
+                </p>
+            </div>
+        </div>
+        <div style="text-align: right;">
+            <span class="status-badge status-ready">Verified Artisan</span>
+        </div>
+    </div>
+
+    <!-- Reviews List -->
+    {% if reviews %}
+        <div style="display: flex; flex-direction: column; gap: 18px;">
+            {% for r in reviews %}
+            <div class="glass-card">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                    <div>
+                        <strong style="color: var(--text-primary); font-size: 1.05rem;">{{ r.customer.name }}</strong>
+                        <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">
+                            Order #{{ r.order_id }} &bull; Verified Client
+                        </div>
+                    </div>
+                    <div class="rating-stars" style="font-size: 1rem;">
+                        {% for i in range(r.rating) %}★{% endfor %}
+                    </div>
+                </div>
+                <p style="color: var(--text-secondary); line-height: 1.6; font-size: 0.95rem;">
+                    "{{ r.comment }}"
+                </p>
+                <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 10px;">
+                    {{ r.created_at|date }}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="glass-card" style="text-align: center; padding: 48px;">
+            <p style="color: var(--text-muted);">No reviews posted yet for this studio.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

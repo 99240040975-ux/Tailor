@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Studio Profile | Local Tailor Connect{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 860px;">
+    <div class="dashboard-header">
+        <div class="dashboard-title">
+            <h1>Edit Studio <span class="gradient-text">Profile</span></h1>
+            <p>Keep your workshop details, pricing, and availability up to date.</p>
+        </div>
+        <a href="{{ url_for('tailor.profile') }}" class="btn btn-secondary">&larr; Back to Profile</a>
+    </div>
+
+    <div class="glass-card">
+        <form method="POST" action="{{ url_for('tailor.edit_profile') }}" enctype="multipart/form-data">
+            
+            <div class="form-group">
+                <label class="form-label" for="shop_name">Shop / Studio Name *</label>
+                <input type="text" id="shop_name" name="shop_name" class="form-control" required value="{{ tailor.shop_name }}">
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div class="form-group">
+                    <label class="form-label" for="city">City / Area *</label>
+                    <input type="text" id="city" name="city" class="form-control" placeholder="e.g. Bangalore, Indiranagar" value="{{ tailor.city or '' }}">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="experience">Years of Experience</label>
+                    <input type="number" id="experience" name="experience" class="form-control" min="0" max="60" value="{{ tailor.experience or 0 }}">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="specialization">Specialization Keywords (Comma separated)</label>
+                <input type="text" id="specialization" name="specialization" class="form-control" placeholder="e.g. Formal Suits, Sherwanis, Blouse Stitching, Jeans Alterations" value="{{ tailor.specialization or '' }}">
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div class="form-group">
+                    <label class="form-label" for="price_range">Typical Price Range</label>
+                    <input type="text" id="price_range" name="price_range" class="form-control" placeholder="e.g. ₹500 - ₹3500" value="{{ tailor.price_range or '' }}">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="availability">Order Acceptance Status</label>
+                    <div style="padding-top: 10px;">
+                        <label style="display: flex; align-items: center; gap: 8px; color: var(--text-primary); cursor: pointer;">
+                            <input type="checkbox" id="availability" name="availability" value="1" {% if tailor.availability %}checked{% endif %}>
+                            Currently Open for New Orders
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="address">Full Workshop Address</label>
+                <textarea id="address" name="address" class="form-control" rows="2" placeholder="Street, Building name, Landmark, Pin code">{{ tailor.address or '' }}</textarea>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="description">About the Studio / Craftsmanship Philosophy</label>
+                <textarea id="description" name="description" class="form-control" rows="4" placeholder="Describe your background, specialty fabrics, custom cuts, customer satisfaction guarantee...">{{ tailor.description or '' }}</textarea>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="profile_pic">Studio Avatar / Profile Photo</label>
+                <input type="file" id="profile_pic" name="profile_pic" class="form-control" accept="image/*">
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 32px; border-top: 1px solid var(--border-glass); padding-top: 20px;">
+                <a href="{{ url_for('tailor.profile') }}" class="btn btn-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary btn-lg">Save Studio Profile &rarr;</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

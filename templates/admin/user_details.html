@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}User #{{ user.id }} Details | Admin Console{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 840px;">
+    <div class="dashboard-header">
+        <div class="dashboard-title">
+            <h1>User Inspection: <span class="gradient-text">{{ user.name }}</span></h1>
+            <p>Member since {{ user.created_at|date }} &bull; Role: {{ user.role|capitalize }}</p>
+        </div>
+        <a href="{{ url_for('admin.users') }}" class="btn btn-secondary">&larr; Back to Users</a>
+    </div>
+
+    <div class="glass-card" style="margin-bottom: 24px;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; font-size: 0.95rem;">
+            <div><span style="color: var(--text-muted);">User ID:</span> <strong>#{{ user.id }}</strong></div>
+            <div><span style="color: var(--text-muted);">Name:</span> <strong>{{ user.name }}</strong></div>
+            <div><span style="color: var(--text-muted);">Email:</span> <strong>{{ user.email }}</strong></div>
+            <div><span style="color: var(--text-muted);">Phone:</span> <strong>{{ user.phone or 'Not provided' }}</strong></div>
+            <div><span style="color: var(--text-muted);">Role:</span> <strong>{{ user.role|capitalize }}</strong></div>
+            <div>
+                <span style="color: var(--text-muted);">Status:</span>
+                {% if user.is_active_account %}
+                    <span class="status-badge status-ready">Active</span>
+                {% else %}
+                    <span class="status-badge status-cancelled">Suspended</span>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if user.is_tailor and user.tailor_profile %}
+            <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border-glass);">
+                <h4>Associated Tailor Studio</h4>
+                <p style="color: var(--text-secondary); margin-top: 4px;">
+                    Shop Name: <strong>{{ user.tailor_profile.shop_name }}</strong><br>
+                    Location: <strong>{{ user.tailor_profile.city or 'Local' }}</strong><br>
+                    Verified: <strong>{{ 'Yes' if user.tailor_profile.is_verified else 'No' }}</strong>
+                </p>
+                <a href="{{ url_for('admin.tailor_details', tailor_id=user.tailor_profile.id) }}" class="btn btn-outline btn-sm" style="margin-top: 10px;">
+                    Inspect Studio Profile &rarr;
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

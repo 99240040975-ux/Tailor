@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+
+{% block title %}Customer Dashboard | Local Tailor Connect{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="dashboard-header">
+        <div class="dashboard-title">
+            <h1>Hello, <span class="gradient-text">{{ current_user.name }}</span></h1>
+            <p>Track your custom garments, manage measurement profiles, and connect with artisans.</p>
+        </div>
+        <div style="display: flex; gap: 12px;">
+            <a href="{{ url_for('orders.create_order') }}" class="btn btn-primary">+ Place New Order</a>
+            <a href="{{ url_for('measurements.add_measurement') }}" class="btn btn-secondary">+ Add Measurements</a>
+        </div>
+    </div>
+
+    <!-- Quick Stats Cards -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon stat-icon-indigo">🧵</div>
+            <div class="stat-info">
+                <h3>{{ active_orders|length }}</h3>
+                <p>Active Orders</p>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon stat-icon-emerald">✨</div>
+            <div class="stat-info">
+                <h3>{{ completed_orders }}</h3>
+                <p>Completed Fits</p>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon stat-icon-amber">📏</div>
+            <div class="stat-info">
+                <h3>{{ measurement_count }}</h3>
+                <p>Saved Profiles</p>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon stat-icon-pink">💬</div>
+            <div class="stat-info">
+                <h3>{{ unread_messages_count }}</h3>
+                <p>Unread Messages</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Orders Section -->
+    <div style="margin-bottom: 48px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2>Active Custom <span class="gradient-text">Orders</span></h2>
+            <a href="{{ url_for('orders.list_orders') }}" class="btn btn-secondary btn-sm">All Orders &rarr;</a>
+        </div>
+
+        {% if active_orders %}
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 20px;">
+                {% for order in active_orders %}
+                <div class="glass-card glass-card-interactive" style="display: flex; flex-direction: column; justify-content: space-between;">
+                    <div>
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+                            <div>
+                                <h3 style="font-size: 1.2rem;">{{ order.clothing_type or 'Custom Outfit' }}</h3>
+                                <div style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 2px;">
+                                    Tailor: <strong>{{ order.tailor.shop_name }}</strong>
+                                </div>
+                            </div>
+                            <span class="status-badge status-{{ order.status }}">
+                                {{ order.status_display }}
+                            </span>
+                        </div>
+
+                        <!-- Progress Bar -->
+                        <div style="margin: 16px 0;">
+                            <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 6px;">
+                                <span>Progress</span>
+                                <span>{{ order.progress_percentage }}%</span>
+                            </div>
+                            <div class="progress-bar-container" style="margin-bottom: 0;">
+                                <div class="progress-bar-fill" style="width: {{ order.progress_percentage }}%;"></div>
+                            </div>
+                        </div>
+
+                        <p style="color: var(--text-secondary); font-size: 0.88rem; line-height: 1.4; margin-bottom: 16px;">
+                            {{ order.description[:90] }}...
+                        </p>
+                    </div>
+
+                    <div style="border-top: 1px solid var(--border-glass); padding-top: 14px; display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-weight: 700; color: var(--text-primary); font-size: 0.95rem;">
+                            {{ order.quotation|currency if order.quotation else 'Quote Pending' }}
+                        </span>
+                        <a href="{{ url_for('orders.order_details', order_id=order.id) }}" class="btn btn-outline btn-sm">
+                            Track Order &rarr;
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="glass-card" style="text-align: center; padding: 48px 24px;">
+                <div style="font-size: 40px; margin-bottom: 12px;">🪡</div>
+                <h3>No Active Orders</h3>
+                <p style="color: var(--text-secondary); max-width: 450px; margin: 8px auto 20px;">
+                    Ready for a sharp custom fit or need an alteration? Browse top-rated local tailors and place your request today.
+                </p>
+                <a href="{{ url_for('orders.create_order') }}" class="btn btn-primary">Start a New Order &rarr;</a>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Recommended Tailors -->
+    {% if top_tailors %}
+    <div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2>Recommended Tailors Near You</h2>
+            <a href="{{ url_for('customer.tailors') }}" class="btn btn-secondary btn-sm">Browse All &rarr;</a>
+        </div>
+
+        <div class="tailors-grid">
+            {% for tailor in top_tailors %}
+            <div class="tailor-card">
+                <div>
+                    <div class="tailor-top">
+                        <div class="tailor-avatar">🧵</div>
+                        <div>
+                            <h3 style="font-size: 1.1rem;">{{ tailor.shop_name }}</h3>
+                            <div style="color: var(--text-secondary); font-size: 0.85rem;">
+                                📍 {{ tailor.city or 'City' }} &bull; {{ tailor.experience }} yrs
+                            </div>
+                            <div class="rating-stars" style="margin-top: 4px;">
+                                ★ {{ tailor.rating }} <span style="font-size: 0.8rem; color: var(--text-muted);">({{ tailor.total_reviews }})</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tailor-tags">
+                        {% if tailor.specialization %}
+                            {% for spec in tailor.specialization.split(',')[:2] %}
+                                <span class="tailor-tag">{{ spec.strip() }}</span>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+                <div style="border-top: 1px solid var(--border-glass); padding-top: 12px; display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-weight: 600; font-size: 0.9rem;">{{ tailor.price_range or 'Custom' }}</span>
+                    <a href="{{ url_for('orders.create_order', tailor_id=tailor.id) }}" class="btn btn-primary btn-sm">Order Fit</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

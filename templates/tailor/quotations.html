@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block title %}Digital Quotations Manager | Tailor Studio{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="dashboard-header">
+        <div class="dashboard-title">
+            <h1>Digital <span class="gradient-text">Quotations</span></h1>
+            <p>Review customer custom garment requests and submit upfront price quotes.</p>
+        </div>
+        <a href="{{ url_for('tailor.dashboard') }}" class="btn btn-secondary">&larr; Dashboard</a>
+    </div>
+
+    <!-- Requests Requiring Quotation -->
+    <div style="margin-bottom: 48px;">
+        <h2 style="margin-bottom: 16px;">Orders Awaiting Your Quote ({{ pending_quotes|length }})</h2>
+
+        {% if pending_quotes %}
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 20px;">
+                {% for o in pending_quotes %}
+                <div class="glass-card" style="display: flex; flex-direction: column; justify-content: space-between;">
+                    <div>
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                            <h3 style="font-size: 1.15rem;">Order #{{ o.id }} - {{ o.clothing_type }}</h3>
+                            <span class="status-badge status-pending">Needs Quote</span>
+                        </div>
+                        <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 8px;">
+                            From: <strong>{{ o.customer.name }}</strong> &bull; {{ o.created_at|date }}
+                        </p>
+                        <p style="color: var(--text-secondary); font-size: 0.88rem; line-height: 1.5; margin-bottom: 16px;">
+                            {{ o.description[:110] }}...
+                        </p>
+                    </div>
+
+                    <div style="border-top: 1px solid var(--border-glass); padding-top: 14px;">
+                        <a href="{{ url_for('tailor.order_details', order_id=o.id) }}" class="btn btn-primary btn-sm" style="width: 100%;">
+                            Review & Submit Quotation &rarr;
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="glass-card" style="text-align: center; padding: 40px;">
+                <p style="color: var(--text-muted);">No orders currently waiting for quotation. All caught up!</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Active Quotes Waiting for Customer Confirmation -->
+    <div>
+        <h2 style="margin-bottom: 16px;">Quotes Sent — Awaiting Customer Acceptance ({{ quoted_orders|length }})</h2>
+
+        {% if quoted_orders %}
+            <div class="glass-card table-responsive" style="padding: 0;">
+                <table class="custom-table">
+                    <thead>
+                        <tr>
+                            <th>Order #</th>
+                            <th>Customer</th>
+                            <th>Garment</th>
+                            <th>Quoted Price</th>
+                            <th>Target Date</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for q in quoted_orders %}
+                        <tr>
+                            <td><strong>#{{ q.id }}</strong></td>
+                            <td>{{ q.customer.name }}</td>
+                            <td>{{ q.clothing_type }}</td>
+                            <td><strong style="color: #60a5fa;">{{ q.quotation|currency }}</strong></td>
+                            <td>{{ q.expected_date|date if q.expected_date else 'TBD' }}</td>
+                            <td>
+                                <a href="{{ url_for('tailor.order_details', order_id=q.id) }}" class="btn btn-outline btn-sm">
+                                    View Details &rarr;
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="glass-card" style="text-align: center; padding: 36px;">
+                <p style="color: var(--text-muted);">No quotations pending customer acceptance.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

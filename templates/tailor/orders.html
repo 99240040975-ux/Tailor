@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}Production Queue | Tailor Connect{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="dashboard-header">
+        <div class="dashboard-title">
+            <h1>Production <span class="gradient-text">Queue</span></h1>
+            <p>Manage all customer orders across cutting, stitching, fitting, and delivery stages.</p>
+        </div>
+        <a href="{{ url_for('tailor.quotations') }}" class="btn btn-secondary">Pending Quotations 💬</a>
+    </div>
+
+    <!-- Status Filters -->
+    <div style="display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap;">
+        <a href="{{ url_for('tailor.orders', status='all') }}" class="btn btn-sm {% if status_filter == 'all' %}btn-primary{% else %}btn-secondary{% endif %}">All</a>
+        {% for code, label in stages %}
+            <a href="{{ url_for('tailor.orders', status=code) }}" class="btn btn-sm {% if status_filter == code %}btn-primary{% else %}btn-secondary{% endif %}">{{ label }}</a>
+        {% endfor %}
+    </div>
+
+    {% if orders %}
+        <div class="glass-card table-responsive" style="padding: 0;">
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th>Order #</th>
+                        <th>Customer</th>
+                        <th>Garment / Service</th>
+                        <th>Quotation</th>
+                        <th>Stage</th>
+                        <th>Due Date</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for o in orders %}
+                    <tr>
+                        <td><strong>#{{ o.id }}</strong></td>
+                        <td>
+                            <strong>{{ o.customer.name }}</strong>
+                            <div style="font-size: 0.78rem; color: var(--text-muted);">{{ o.customer.phone or 'No phone' }}</div>
+                        </td>
+                        <td>
+                            <strong>{{ o.clothing_type }}</strong>
+                            <div style="font-size: 0.78rem; color: var(--text-muted);">{{ o.service_type|capitalize }}</div>
+                        </td>
+                        <td>
+                            {% if o.quotation %}
+                                <strong style="color: #34d399;">{{ o.quotation|currency }}</strong>
+                            {% else %}
+                                <span style="color: #fbbf24; font-weight: 600;">Pending Quote</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="status-badge status-{{ o.status }}">
+                                {{ o.status_display }}
+                            </span>
+                        </td>
+                        <td style="color: var(--text-secondary); font-size: 0.85rem;">
+                            {{ o.expected_date|date if o.expected_date else 'TBD' }}
+                        </td>
+                        <td>
+                            <a href="{{ url_for('tailor.order_details', order_id=o.id) }}" class="btn btn-primary btn-sm">
+                                Manage &rarr;
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="glass-card" style="text-align: center; padding: 60px 20px;">
+            <p style="color: var(--text-muted);">No orders found for the selected status.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

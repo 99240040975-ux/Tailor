@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Console | Local Tailor Connect{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="dashboard-header">
+        <div class="dashboard-title">
+            <h1>Platform <span class="gradient-text">Administration</span></h1>
+            <p>Monitor platform growth, tailor verifications, order pipelines, and content moderation.</p>
+        </div>
+        <div style="display: flex; gap: 12px;">
+            <a href="{{ url_for('admin.tailors') }}" class="btn btn-primary">Tailor Approvals</a>
+            <a href="{{ url_for('admin.orders') }}" class="btn btn-secondary">Oversee Orders</a>
+        </div>
+    </div>
+
+    <!-- Admin Metric Stats -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon stat-icon-indigo">👥</div>
+            <div class="stat-info">
+                <h3>{{ total_users }}</h3>
+                <p>Total Registered Users</p>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon stat-icon-amber">🧵</div>
+            <div class="stat-info">
+                <h3>{{ total_tailors }}</h3>
+                <p>Active Tailor Studios</p>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon stat-icon-emerald">📦</div>
+            <div class="stat-info">
+                <h3>{{ total_orders }}</h3>
+                <p>Lifetime Orders Placed</p>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon stat-icon-pink">💳</div>
+            <div class="stat-info">
+                <h3>{{ total_volume|currency }}</h3>
+                <p>Delivered GMV</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Platform Activity -->
+    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 28px; margin-bottom: 40px;">
+        <!-- Recent Orders Overseer -->
+        <div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <h2>Recent Orders Across Platform</h2>
+                <a href="{{ url_for('admin.orders') }}" class="btn btn-secondary btn-sm">All Orders &rarr;</a>
+            </div>
+
+            {% if recent_orders %}
+            <div class="glass-card table-responsive" style="padding: 0;">
+                <table class="custom-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Customer</th>
+                            <th>Tailor</th>
+                            <th>Garment</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for o in recent_orders %}
+                        <tr>
+                            <td><strong>#{{ o.id }}</strong></td>
+                            <td>{{ o.customer.name }}</td>
+                            <td>{{ o.tailor.shop_name }}</td>
+                            <td>{{ o.clothing_type }}</td>
+                            <td>
+                                <span class="status-badge status-{{ o.status }}">
+                                    {{ o.status_display }}
+                                </span>
+                            </td>
+                            <td>
+                                <a href="{{ url_for('admin.order_details', order_id=o.id) }}" class="btn btn-outline btn-sm">Inspect</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+                <div class="glass-card" style="padding: 30px; text-align: center; color: var(--text-muted);">
+                    No orders placed yet.
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Recent Registered Users -->
+        <div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <h2>Latest Users</h2>
+                <a href="{{ url_for('admin.users') }}" class="btn btn-secondary btn-sm">Manage &rarr;</a>
+            </div>
+
+            {% if recent_users %}
+            <div class="glass-card" style="padding: 16px; display: flex; flex-direction: column; gap: 12px;">
+                {% for u in recent_users %}
+                <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 10px; border-bottom: 1px solid var(--border-glass);">
+                    <div>
+                        <strong>{{ u.name }}</strong>
+                        <div style="font-size: 0.78rem; color: var(--text-muted);">{{ u.email }}</div>
+                    </div>
+                    <span class="status-badge" style="background: rgba(255, 255, 255, 0.05); color: var(--text-secondary);">
+                        {{ u.role|capitalize }}
+                    </span>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

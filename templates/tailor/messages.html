@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}Client Messages | Tailor Studio{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="dashboard-header">
+        <div class="dashboard-title">
+            <h1>Customer <span class="gradient-text">Consultations</span></h1>
+            <p>Direct communication with customers regarding measurements, fittings, and styling.</p>
+        </div>
+        <a href="{{ url_for('tailor.dashboard') }}" class="btn btn-secondary">&larr; Dashboard</a>
+    </div>
+
+    <!-- Reuses the comprehensive messages interface -->
+    {% include "customer/messages.html" %}
+</div>
+{% endblock %}

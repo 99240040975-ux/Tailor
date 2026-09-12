@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}Review Moderation | Admin Console{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="dashboard-header">
+        <div class="dashboard-title">
+            <h1>Review <span class="gradient-text">Moderation</span></h1>
+            <p>Inspect platform ratings and remove reviews that violate community guidelines.</p>
+        </div>
+        <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary">&larr; Admin Dashboard</a>
+    </div>
+
+    {% if reviews %}
+        <div class="glass-card table-responsive" style="padding: 0;">
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Customer</th>
+                        <th>Tailor</th>
+                        <th>Order</th>
+                        <th>Rating</th>
+                        <th>Comment</th>
+                        <th>Date</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in reviews %}
+                    <tr>
+                        <td><strong>#{{ r.id }}</strong></td>
+                        <td>{{ r.customer.name }}</td>
+                        <td>{{ r.tailor.shop_name }}</td>
+                        <td>#{{ r.order_id }}</td>
+                        <td>
+                            <span class="rating-stars">
+                                {% for i in range(r.rating) %}★{% endfor %}
+                            </span>
+                        </td>
+                        <td style="max-width: 320px; font-size: 0.88rem; color: var(--text-secondary);">
+                            "{{ r.comment }}"
+                        </td>
+                        <td style="font-size: 0.8rem; color: var(--text-muted);">{{ r.created_at|date }}</td>
+                        <td>
+                            <form method="POST" action="{{ url_for('admin.delete_review', review_id=r.id) }}" onsubmit="return confirm('Delete this review permanently?');">
+                                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="glass-card" style="text-align: center; padding: 48px;">
+            <p style="color: var(--text-muted);">No reviews currently on the platform.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

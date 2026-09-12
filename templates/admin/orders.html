@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}All Orders | Admin Console{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="dashboard-header">
+        <div class="dashboard-title">
+            <h1>Platform <span class="gradient-text">Orders</span></h1>
+            <p>Full oversight of all customer requests, quotations, and active pipeline stages.</p>
+        </div>
+        <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary">&larr; Admin Dashboard</a>
+    </div>
+
+    <!-- Status Filters -->
+    <div style="display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap;">
+        <a href="{{ url_for('admin.orders', status='all') }}" class="btn btn-sm {% if status_filter == 'all' %}btn-primary{% else %}btn-secondary{% endif %}">All</a>
+        {% for code, label in stages %}
+            <a href="{{ url_for('admin.orders', status=code) }}" class="btn btn-sm {% if status_filter == code %}btn-primary{% else %}btn-secondary{% endif %}">{{ label }}</a>
+        {% endfor %}
+    </div>
+
+    {% if orders %}
+        <div class="glass-card table-responsive" style="padding: 0;">
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th>Order #</th>
+                        <th>Customer</th>
+                        <th>Tailor</th>
+                        <th>Garment</th>
+                        <th>Quotation</th>
+                        <th>Status</th>
+                        <th>Created</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for o in orders %}
+                    <tr>
+                        <td><strong>#{{ o.id }}</strong></td>
+                        <td>{{ o.customer.name }}</td>
+                        <td>{{ o.tailor.shop_name }}</td>
+                        <td>
+                            <strong>{{ o.clothing_type }}</strong>
+                            <div style="font-size: 0.75rem; color: var(--text-muted);">{{ o.service_type|capitalize }}</div>
+                        </td>
+                        <td>
+                            {% if o.quotation %}
+                                <strong style="color: #34d399;">{{ o.quotation|currency }}</strong>
+                            {% else %}
+                                <span style="color: var(--text-muted);">Pending</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="status-badge status-{{ o.status }}">{{ o.status_display }}</span>
+                        </td>
+                        <td style="font-size: 0.85rem; color: var(--text-secondary);">{{ o.created_at|date }}</td>
+                        <td>
+                            <a href="{{ url_for('admin.order_details', order_id=o.id) }}" class="btn btn-secondary btn-sm">Inspect</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="glass-card" style="text-align: center; padding: 48px;">
+            <p style="color: var(--text-muted);">No orders found matching the filter.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

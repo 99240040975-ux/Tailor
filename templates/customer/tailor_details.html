@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+
+{% block title %}{{ tailor.shop_name }} | Local Tailor Connect{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Tailor Header Card -->
+    <div class="glass-card" style="margin-bottom: 32px; padding: 36px;">
+        <div style="display: flex; gap: 28px; align-items: flex-start; flex-wrap: wrap;">
+            <div class="tailor-avatar" style="width: 100px; height: 100px; font-size: 48px; border-radius: var(--radius-md);">
+                {% if tailor.user.profile_pic %}
+                    <img src="{{ url_for('static', filename=tailor.user.profile_pic) }}" alt="{{ tailor.shop_name }}" style="width: 100%; height: 100%; object-fit: cover; border-radius: var(--radius-md);">
+                {% else %}
+                    ✂️
+                {% endif %}
+            </div>
+
+            <div style="flex: 1; min-width: 260px;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px;">
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <h1 style="font-size: 2.1rem;">{{ tailor.shop_name }}</h1>
+                            {% if tailor.is_verified %}
+                                <span class="status-badge" style="background: rgba(59, 130, 246, 0.2); color: #60a5fa; border-color: rgba(59, 130, 246, 0.4);">
+                                    ✓ Verified Master
+                                </span>
+                            {% endif %}
+                        </div>
+                        <p style="color: var(--text-secondary); margin-top: 4px; font-size: 0.95rem;">
+                            Managed by <strong>{{ tailor.user.name }}</strong> &bull; 📍 {{ tailor.city or 'City Studio' }}
+                        </p>
+                    </div>
+
+                    <div style="display: flex; gap: 12px;">
+                        {% if current_user.is_authenticated and current_user.is_customer %}
+                            <a href="{{ url_for('customer.messages', user_id=tailor.user_id) }}" class="btn btn-secondary">💬 Chat</a>
+                            <a href="{{ url_for('orders.create_order', tailor_id=tailor.id) }}" class="btn btn-primary">Request Custom Fit ✂️</a>
+                        {% elif not current_user.is_authenticated %}
+                            <a href="{{ url_for('auth.login') }}" class="btn btn-primary">Sign In to Order</a>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 24px; margin-top: 20px; flex-wrap: wrap;">
+                    <div class="rating-stars" style="font-size: 1.1rem;">
+                        ★ <span class="rating-score">{{ tailor.rating }}</span>
+                        <span style="color: var(--text-muted); font-size: 0.85rem;">({{ tailor.total_reviews }} reviews)</span>
+                    </div>
+                    <div style="color: var(--text-secondary);">
+                        💼 <strong>{{ tailor.experience }}</strong> Years Experience
+                    </div>
+                    <div style="color: var(--text-secondary);">
+                        💰 <strong>{{ tailor.price_range or 'Custom' }}</strong> Price Range
+                    </div>
+                    <div>
+                        {% if tailor.availability %}
+                            <span class="status-badge status-ready">🟢 Accepting Orders</span>
+                        {% else %}
+                            <span class="status-badge status-cancelled">🔴 Busy / Unavailable</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Details Grid -->
+    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 32px;" class="tailor-detail-layout">
+        <div>
+            <!-- About & Specialization -->
+            <div class="glass-card" style="margin-bottom: 28px;">
+                <h3 style="margin-bottom: 16px;">About the Studio</h3>
+                <p style="color: var(--text-secondary); line-height: 1.7; font-size: 0.98rem; white-space: pre-line;">
+                    {{ tailor.description or 'We are committed to delivering outstanding craftsmanship, perfect fitting, and meticulous attention to fabric and details.' }}
+                </p>
+
+                <h4 style="margin: 24px 0 12px;">Specializations & Craft Expertise</h4>
+                <div class="tailor-tags">
+                    {% if tailor.specialization %}
+                        {% for spec in tailor.specialization.split(',') %}
+                            <span class="tailor-tag" style="padding: 6px 14px; font-size: 0.85rem;">{{ spec.strip() }}</span>
+                        {% endfor %}
+                    {% else %}
+                        <span class="tailor-tag">Bespoke Tailoring</span>
+                        <span class="tailor-tag">Alterations</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Customer Reviews Section -->
+            <div class="glass-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h3>Customer Reviews ({{ reviews|length }})</h3>
+                </div>
+
+                {% if reviews %}
+                    <div style="display: flex; flex-direction: column; gap: 16px;">
+                        {% for r in reviews %}
+                        <div style="padding: 16px; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-glass); border-radius: var(--radius-sm);">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <div>
+                                    <strong style="color: var(--text-primary);">{{ r.customer.name }}</strong>
+                                    <span style="font-size: 0.75rem; color: var(--text-muted); margin-left: 8px;">Order #{{ r.order_id }}</span>
+                                </div>
+                                <div class="rating-stars" style="font-size: 0.85rem;">
+                                    {% for i in range(r.rating) %}★{% endfor %}
+                                </div>
+                            </div>
+                            <p style="color: var(--text-secondary); font-size: 0.9rem;">
+                                {{ r.comment or 'Great tailor! Fitting was exactly according to measurements.' }}
+                            </p>
+                            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 8px;">
+                                {{ r.created_at|date }}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p style="color: var(--text-muted); font-size: 0.9rem;">No reviews yet for this tailor studio. Be the first to place an order and share your experience!</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Sidebar / Contact & Location Info -->
+        <div>
+            <div class="glass-card" style="margin-bottom: 24px;">
+                <h4 style="margin-bottom: 16px;">Workshop Location</h4>
+                <p style="color: var(--text-secondary); font-size: 0.95rem; line-height: 1.5; margin-bottom: 16px;">
+                    📍 {{ tailor.address or 'Studio address provided upon order confirmation.' }}<br>
+                    <strong>{{ tailor.city or '' }}</strong>
+                </p>
+
+                <h4 style="margin-bottom: 12px;">Working Method</h4>
+                <ul style="color: var(--text-secondary); font-size: 0.88rem; line-height: 1.7; padding-left: 20px;">
+                    <li>Digital measurements supported</li>
+                    <li>Design reference upload</li>
+                    <li>Doorstep delivery / Store pickup</li>
+                    <li>Direct messaging support</li>
+                </ul>
+            </div>
+
+            {% if current_user.is_authenticated and current_user.is_customer %}
+            <div class="glass-card" style="text-align: center; background: rgba(99, 102, 241, 0.08); border-color: rgba(99, 102, 241, 0.25);">
+                <h4>Have a Specific Garment in Mind?</h4>
+                <p style="color: var(--text-secondary); font-size: 0.85rem; margin: 8px 0 16px;">
+                    Upload reference designs, select your measurement profile, and get a quick custom quote.
+                </p>
+                <a href="{{ url_for('orders.create_order', tailor_id=tailor.id) }}" class="btn btn-primary" style="width: 100%;">
+                    Submit Order Request
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

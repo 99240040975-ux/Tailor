@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block title %}Tailor #{{ tailor.id }} Review | Admin Console{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="dashboard-header">
+        <div class="dashboard-title">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <h1>{{ tailor.shop_name }}</h1>
+                {% if tailor.is_verified %}
+                    <span class="status-badge status-confirmed">✓ Verified Master Artisan</span>
+                {% endif %}
+            </div>
+            <p>User account: {{ tailor.user.name }} ({{ tailor.user.email }}) &bull; 📍 {{ tailor.city or 'Local' }}</p>
+        </div>
+        <div style="display: flex; gap: 12px;">
+            <form method="POST" action="{{ url_for('admin.toggle_verify_tailor', tailor_id=tailor.id) }}">
+                <button type="submit" class="btn {% if tailor.is_verified %}btn-danger{% else %}btn-primary{% endif %}">
+                    {{ 'Revoke Verification' if tailor.is_verified else 'Grant Verification Badge ✓' }}
+                </button>
+            </form>
+            <a href="{{ url_for('admin.tailors') }}" class="btn btn-secondary">&larr; Back to Tailors</a>
+        </div>
+    </div>
+
+    <!-- Studio Information -->
+    <div class="glass-card" style="margin-bottom: 32px;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; font-size: 0.95rem;">
+            <div><span style="color: var(--text-muted);">Rating:</span> <strong style="color: #fbbf24;">★ {{ tailor.rating }}</strong> ({{ tailor.total_reviews }} reviews)</div>
+            <div><span style="color: var(--text-muted);">Experience:</span> <strong>{{ tailor.experience }} years</strong></div>
+            <div><span style="color: var(--text-muted);">Price Range:</span> <strong>{{ tailor.price_range or 'Custom' }}</strong></div>
+            <div><span style="color: var(--text-muted);">Status:</span> <strong>{{ 'Available' if tailor.availability else 'Unavailable' }}</strong></div>
+        </div>
+
+        <div style="margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--border-glass);">
+            <h4 style="margin-bottom: 6px;">Specializations:</h4>
+            <p style="color: var(--text-secondary);">{{ tailor.specialization or 'None listed' }}</p>
+            <h4 style="margin: 14px 0 6px;">Address:</h4>
+            <p style="color: var(--text-secondary);">{{ tailor.address or 'None specified' }}</p>
+            <h4 style="margin: 14px 0 6px;">Description:</h4>
+            <p style="color: var(--text-secondary); line-height: 1.6;">{{ tailor.description or 'None provided' }}</p>
+        </div>
+    </div>
+
+    <!-- Tailor Orders Table -->
+    <div style="margin-bottom: 32px;">
+        <h3 style="margin-bottom: 16px;">Orders Handled ({{ orders|length }})</h3>
+        {% if orders %}
+        <div class="glass-card table-responsive" style="padding: 0;">
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th>Order #</th>
+                        <th>Customer</th>
+                        <th>Garment</th>
+                        <th>Quote</th>
+                        <th>Status</th>
+                        <th>Created</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for o in orders %}
+                    <tr>
+                        <td><strong>#{{ o.id }}</strong></td>
+                        <td>{{ o.customer.name }}</td>
+                        <td>{{ o.clothing_type }}</td>
+                        <td>{{ o.quotation|currency if o.quotation else 'Pending' }}</td>
+                        <td><span class="status-badge status-{{ o.status }}">{{ o.status_display }}</span></td>
+                        <td>{{ o.created_at|date }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+            <p style="color: var(--text-muted);">No orders recorded for this tailor.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

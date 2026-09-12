@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block title %}Digital Measurement Vault | Local Tailor Connect{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="dashboard-header">
+        <div class="dashboard-title">
+            <h1>Digital <span class="gradient-text">Measurement Vault</span></h1>
+            <p>Maintain reusable measurement profiles for suits, shirts, kurtas, or dresses without repeat measurements.</p>
+        </div>
+        <a href="{{ url_for('measurements.add_measurement') }}" class="btn btn-primary">+ Create New Profile</a>
+    </div>
+
+    {% if profiles %}
+        <div class="measurements-grid">
+            {% for p in profiles %}
+            <div class="measurement-card">
+                <div class="meas-header">
+                    <div>
+                        <h3 style="font-size: 1.15rem;">{{ p.profile_name }}</h3>
+                        <span style="font-size: 0.75rem; color: var(--text-muted);">Saved {{ p.created_at|date }}</span>
+                    </div>
+                    <span class="status-badge" style="background: rgba(99, 102, 241, 0.15); color: #818cf8; border-color: rgba(99, 102, 241, 0.3);">
+                        {{ p.unit|upper }}
+                    </span>
+                </div>
+
+                <div class="meas-metrics-grid">
+                    <div class="meas-metric-box">
+                        <div class="meas-metric-label">Chest</div>
+                        <div class="meas-metric-val">{{ p.chest or '-' }}</div>
+                    </div>
+                    <div class="meas-metric-box">
+                        <div class="meas-metric-label">Waist</div>
+                        <div class="meas-metric-val">{{ p.waist or '-' }}</div>
+                    </div>
+                    <div class="meas-metric-box">
+                        <div class="meas-metric-label">Hip</div>
+                        <div class="meas-metric-val">{{ p.hip or '-' }}</div>
+                    </div>
+                    <div class="meas-metric-box">
+                        <div class="meas-metric-label">Shoulder</div>
+                        <div class="meas-metric-val">{{ p.shoulder or '-' }}</div>
+                    </div>
+                    <div class="meas-metric-box">
+                        <div class="meas-metric-label">Sleeve</div>
+                        <div class="meas-metric-val">{{ p.sleeve or '-' }}</div>
+                    </div>
+                    <div class="meas-metric-box">
+                        <div class="meas-metric-label">Neck</div>
+                        <div class="meas-metric-val">{{ p.neck or '-' }}</div>
+                    </div>
+                    <div class="meas-metric-box">
+                        <div class="meas-metric-label">Inseam</div>
+                        <div class="meas-metric-val">{{ p.inseam or '-' }}</div>
+                    </div>
+                    <div class="meas-metric-box">
+                        <div class="meas-metric-label">Height</div>
+                        <div class="meas-metric-val">{{ p.height or '-' }}</div>
+                    </div>
+                </div>
+
+                {% if p.notes %}
+                    <p style="font-size: 0.82rem; color: var(--text-secondary); background: rgba(255, 255, 255, 0.02); padding: 8px 12px; border-radius: var(--radius-sm); margin-bottom: 16px;">
+                        <em>Fitting Notes:</em> {{ p.notes }}
+                    </p>
+                {% endif %}
+
+                <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-glass); padding-top: 14px;">
+                    <a href="{{ url_for('orders.create_order', measurement_id=p.id) }}" class="btn btn-outline btn-sm">
+                        Use in Order ✂️
+                    </a>
+                    <div style="display: flex; gap: 8px;">
+                        <a href="{{ url_for('measurements.edit_measurement', meas_id=p.id) }}" class="btn btn-secondary btn-sm">Edit</a>
+                        <form method="POST" action="{{ url_for('measurements.delete_measurement', meas_id=p.id) }}" onsubmit="return confirm('Are you sure you want to delete this profile?');">
+                            <button type="submit" class="btn btn-danger btn-sm">&times;</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="glass-card" style="text-align: center; padding: 60px 20px;">
+            <div style="font-size: 48px; margin-bottom: 16px;">📏</div>
+            <h3>No Measurement Profiles Saved Yet</h3>
+            <p style="color: var(--text-secondary); max-width: 480px; margin: 8px auto 24px;">
+                Save your body measurements once and use them seamlessly across all tailor requests and alteration jobs.
+            </p>
+            <a href="{{ url_for('measurements.add_measurement') }}" class="btn btn-primary">+ Create Measurement Profile</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

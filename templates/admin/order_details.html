@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block title %}Inspect Order #{{ order.id }} | Admin Console{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="dashboard-header">
+        <div class="dashboard-title">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <h1>Admin Inspection: Order <span class="gradient-text">#{{ order.id }}</span></h1>
+                <span class="status-badge status-{{ order.status }}">{{ order.status_display }}</span>
+            </div>
+            <p>{{ order.clothing_type }} &bull; Customer: {{ order.customer.name }} &bull; Tailor: {{ order.tailor.shop_name }}</p>
+        </div>
+        <a href="{{ url_for('admin.orders') }}" class="btn btn-secondary">&larr; Back to Orders</a>
+    </div>
+
+    <!-- Admin Status Override -->
+    <div class="glass-card" style="margin-bottom: 28px; background: rgba(99, 102, 241, 0.05); border-color: rgba(99, 102, 241, 0.2);">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+            <div>
+                <h4>Admin Status Override</h4>
+                <p style="font-size: 0.85rem; color: var(--text-secondary);">Force adjust the order lifecycle status for administrative mediation.</p>
+            </div>
+            <form method="POST" action="{{ url_for('orders.update_status', order_id=order.id) }}" style="display: flex; gap: 8px;">
+                <select name="status" class="form-control" style="width: auto;">
+                    {% for code, label in stages %}
+                        <option value="{{ code }}" {% if order.status == code %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="btn btn-primary btn-sm">Update Status</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Details Grid -->
+    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 28px;">
+        <div>
+            <div class="glass-card" style="margin-bottom: 24px;">
+                <h3 style="margin-bottom: 16px;">Order Details</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; font-size: 0.95rem; margin-bottom: 16px;">
+                    <div><span style="color: var(--text-muted);">Service:</span> <strong>{{ order.service_type }}</strong></div>
+                    <div><span style="color: var(--text-muted);">Garment:</span> <strong>{{ order.clothing_type }}</strong></div>
+                    <div><span style="color: var(--text-muted);">Quotation:</span> <strong>{{ order.quotation|currency if order.quotation else 'Pending' }}</strong></div>
+                    <div><span style="color: var(--text-muted);">Delivery Method:</span> <strong>{{ order.delivery_method|capitalize }}</strong></div>
+                    <div><span style="color: var(--text-muted);">Placed:</span> <strong>{{ order.created_at|date }}</strong></div>
+                    <div><span style="color: var(--text-muted);">Due Date:</span> <strong>{{ order.expected_date|date if order.expected_date else 'TBD' }}</strong></div>
+                </div>
+
+                <h4 style="margin-bottom: 8px;">Customer Description:</h4>
+                <p style="color: var(--text-secondary); line-height: 1.5; background: rgba(255, 255, 255, 0.02); padding: 12px; border-radius: var(--radius-sm);">
+                    {{ order.description }}
+                </p>
+
+                {% if order.reference_image %}
+                    <h4 style="margin: 16px 0 8px;">Reference Image:</h4>
+                    <img src="{{ url_for('static', filename=order.reference_image) }}" alt="Design" style="max-width: 240px; border-radius: var(--radius-sm);">
+                {% endif %}
+            </div>
+
+            {% if order.measurement %}
+            <div class="glass-card">
+                <h3>Digital Measurements</h3>
+                <div class="meas-metrics-grid" style="margin-top: 14px;">
+                    <div class="meas-metric-box"><div class="meas-metric-label">Chest</div><div class="meas-metric-val">{{ order.measurement.chest or '-' }}</div></div>
+                    <div class="meas-metric-box"><div class="meas-metric-label">Waist</div><div class="meas-metric-val">{{ order.measurement.waist or '-' }}</div></div>
+                    <div class="meas-metric-box"><div class="meas-metric-label">Hip</div><div class="meas-metric-val">{{ order.measurement.hip or '-' }}</div></div>
+                    <div class="meas-metric-box"><div class="meas-metric-label">Shoulder</div><div class="meas-metric-val">{{ order.measurement.shoulder or '-' }}</div></div>
+                    <div class="meas-metric-box"><div class="meas-metric-label">Sleeve</div><div class="meas-metric-val">{{ order.measurement.sleeve or '-' }}</div></div>
+                    <div class="meas-metric-box"><div class="meas-metric-label">Neck</div><div class="meas-metric-val">{{ order.measurement.neck or '-' }}</div></div>
+                    <div class="meas-metric-box"><div class="meas-metric-label">Inseam</div><div class="meas-metric-val">{{ order.measurement.inseam or '-' }}</div></div>
+                    <div class="meas-metric-box"><div class="meas-metric-label">Height</div><div class="meas-metric-val">{{ order.measurement.height or '-' }}</div></div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <div>
+            <div class="glass-card" style="margin-bottom: 24px;">
+                <h4>Parties Involved</h4>
+                <div style="margin-top: 12px;">
+                    <strong style="color: var(--accent-primary);">Customer:</strong>
+                    <p>{{ order.customer.name }} ({{ order.customer.email }})</p>
+                    <p style="color: var(--text-secondary); font-size: 0.85rem;">📞 {{ order.customer.phone or 'No phone' }}</p>
+                </div>
+                <div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border-glass);">
+                    <strong style="color: #ec4899;">Tailor:</strong>
+                    <p>{{ order.tailor.shop_name }}</p>
+                    <p style="color: var(--text-secondary); font-size: 0.85rem;">Manager: {{ order.tailor.user.name }} ({{ order.tailor.user.email }})</p>
+                </div>
+            </div>
+
+            {% if order.delivery_method == 'delivery' and order.delivery_address %}
+            <div class="glass-card">
+                <h4>Delivery Address</h4>
+                <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 8px;">
+                    {{ order.delivery_address }}
+                </p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

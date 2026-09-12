@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block title %}Page Not Found | Local Tailor Connect{% endblock %}
+
+{% block content %}
+<div class="container" style="text-align: center; padding: 80px 20px;">
+    <div style="font-size: 80px; line-height: 1; margin-bottom: 20px;">🧵</div>
+    <h1 style="font-size: 3rem; margin-bottom: 16px;">404 - Pattern Not Found</h1>
+    <p style="color: var(--text-secondary); max-width: 500px; margin: 0 auto 32px; font-size: 1.1rem;">
+        Looks like this thread came unraveled. The page you are looking for might have been moved or doesn't exist.
+    </p>
+    <a href="{{ url_for('index') }}" class="btn btn-primary btn-lg">Back to Homepage &rarr;</a>
+</div>
+{% endblock %}

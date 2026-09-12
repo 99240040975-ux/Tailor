@@ -1,0 +1,33 @@
+# Virtual Environment
+venv/
+env/
+ENV/
+.venv/
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environment variables & secrets
+.env
+.env.local
+
+# SQLite database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Uploaded media (keep structure, ignore uploaded files in repo)
+static/uploads/profile/*
+!static/uploads/profile/.gitkeep
+static/uploads/reference/*
+!static/uploads/reference/.gitkeep
+static/uploads/documents/*
+!static/uploads/documents/.gitkeep
+
+# IDE & OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

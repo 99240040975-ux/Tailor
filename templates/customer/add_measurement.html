@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}Add Measurement Profile | Local Tailor Connect{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 860px;">
+    <div class="dashboard-header">
+        <div class="dashboard-title">
+            <h1>Save Digital <span class="gradient-text">Measurement Profile</span></h1>
+            <p>Create a reusable profile for precise tailoring fits without recurring measurement appointments.</p>
+        </div>
+        <a href="{{ url_for('measurements.list_measurements') }}" class="btn btn-secondary">&larr; Back to Profiles</a>
+    </div>
+
+    <div class="glass-card">
+        <form method="POST" action="{{ url_for('measurements.add_measurement') }}">
+            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 16px; margin-bottom: 24px;">
+                <div class="form-group">
+                    <label class="form-label" for="profile_name">Profile Title *</label>
+                    <input type="text" id="profile_name" name="profile_name" class="form-control" required placeholder="e.g. Formal 2-Piece Suit, Casual Kurta, Slim Fit" value="{{ profile_name or '' }}">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="measurement_unit">Measurement Unit</label>
+                    <select id="measurement_unit" name="unit" class="form-control">
+                        <option value="inches" selected>Inches (in)</option>
+                        <option value="cm">Centimeters (cm)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="margin: 28px 0 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border-glass);">
+                <h3>Body Dimensions (<span class="unit-indicator">in</span>)</h3>
+                <p style="color: var(--text-secondary); font-size: 0.85rem;">Enter the metrics applicable to this profile. You can leave optional ones blank.</p>
+            </div>
+
+            <!-- Dimensions Grid -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 18px; margin-bottom: 24px;">
+                <div class="form-group">
+                    <label class="form-label" for="chest">Chest / Bust</label>
+                    <input type="number" step="0.1" id="chest" name="chest" class="form-control" placeholder="38.0" value="{{ chest or '' }}">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="waist">Waist</label>
+                    <input type="number" step="0.1" id="waist" name="waist" class="form-control" placeholder="32.5" value="{{ waist or '' }}">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="hip">Hips / Seat</label>
+                    <input type="number" step="0.1" id="hip" name="hip" class="form-control" placeholder="40.0" value="{{ hip or '' }}">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="shoulder">Shoulder Width</label>
+                    <input type="number" step="0.1" id="shoulder" name="shoulder" class="form-control" placeholder="18.0" value="{{ shoulder or '' }}">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="sleeve">Sleeve Length</label>
+                    <input type="number" step="0.1" id="sleeve" name="sleeve" class="form-control" placeholder="25.0" value="{{ sleeve or '' }}">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="neck">Neck Collar</label>
+                    <input type="number" step="0.1" id="neck" name="neck" class="form-control" placeholder="15.5" value="{{ neck or '' }}">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="inseam">Inseam / Leg</label>
+                    <input type="number" step="0.1" id="inseam" name="inseam" class="form-control" placeholder="30.0" value="{{ inseam or '' }}">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="height">Total Height</label>
+                    <input type="number" step="0.1" id="height" name="height" class="form-control" placeholder="68.0" value="{{ height or '' }}">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="notes">Fit Preferences & Specific Instructions</label>
+                <textarea id="notes" name="notes" class="form-control" rows="3" placeholder="e.g. Prefer relaxed fit around torso, fitted cuffs, extra length for tuck-in...">{{ notes or '' }}</textarea>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px;">
+                <a href="{{ url_for('measurements.list_measurements') }}" class="btn btn-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary">Save Measurement Profile &rarr;</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/measurements.js') }}"></script>
+{% endblock %}

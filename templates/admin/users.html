@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}User Management | Admin Console{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="dashboard-header">
+        <div class="dashboard-title">
+            <h1>User <span class="gradient-text">Management</span></h1>
+            <p>View registered accounts, filter by roles, and toggle account activation.</p>
+        </div>
+        <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary">&larr; Admin Dashboard</a>
+    </div>
+
+    <!-- Role Filter Tabs -->
+    <div style="display: flex; gap: 8px; margin-bottom: 24px;">
+        <a href="{{ url_for('admin.users', role='all') }}" class="btn btn-sm {% if role_filter == 'all' %}btn-primary{% else %}btn-secondary{% endif %}">All Users</a>
+        <a href="{{ url_for('admin.users', role='customer') }}" class="btn btn-sm {% if role_filter == 'customer' %}btn-primary{% else %}btn-secondary{% endif %}">Customers</a>
+        <a href="{{ url_for('admin.users', role='tailor') }}" class="btn btn-sm {% if role_filter == 'tailor' %}btn-primary{% else %}btn-secondary{% endif %}">Tailors</a>
+        <a href="{{ url_for('admin.users', role='admin') }}" class="btn btn-sm {% if role_filter == 'admin' %}btn-primary{% else %}btn-secondary{% endif %}">Admins</a>
+    </div>
+
+    <div class="glass-card table-responsive" style="padding: 0;">
+        <table class="custom-table">
+            <thead>
+                <tr>
+                    <th>User ID</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th>Registered</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in users %}
+                <tr>
+                    <td><strong>#{{ u.id }}</strong></td>
+                    <td>{{ u.name }}</td>
+                    <td>{{ u.email }}</td>
+                    <td>
+                        <span class="status-badge" style="background: rgba(99, 102, 241, 0.15); color: #818cf8;">
+                            {{ u.role|capitalize }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if u.is_active_account %}
+                            <span class="status-badge status-ready">Active</span>
+                        {% else %}
+                            <span class="status-badge status-cancelled">Deactivated</span>
+                        {% endif %}
+                    </td>
+                    <td style="color: var(--text-secondary); font-size: 0.85rem;">{{ u.created_at|date }}</td>
+                    <td>
+                        <div style="display: flex; gap: 8px;">
+                            <a href="{{ url_for('admin.user_details', user_id=u.id) }}" class="btn btn-secondary btn-sm">Inspect</a>
+                            {% if u.id != current_user.id %}
+                            <form method="POST" action="{{ url_for('admin.toggle_user_status', user_id=u.id) }}">
+                                <button type="submit" class="btn btn-sm {% if u.is_active_account %}btn-danger{% else %}btn-primary{% endif %}">
+                                    {{ 'Deactivate' if u.is_active_account else 'Activate' }}
+                                </button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

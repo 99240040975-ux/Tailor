@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block title %}Tailor Studio Dashboard | Local Tailor Connect{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="dashboard-header">
+        <div class="dashboard-title">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <h1>{{ tailor.shop_name }} <span class="gradient-text">Studio</span></h1>
+                {% if tailor.availability %}
+                    <span class="status-badge status-ready">Open for Orders</span>
+                {% else %}
+                    <span class="status-badge status-cancelled">Orders Paused</span>
+                {% endif %}
+            </div>
+            <p>Master Tailor: <strong>{{ current_user.name }}</strong> &bull; 📍 {{ tailor.city or 'Local' }}</p>
+        </div>
+        <div style="display: flex; gap: 12px;">
+            <a href="{{ url_for('tailor.quotations') }}" class="btn btn-primary">Pending Quotes ({{ pending_count }})</a>
+            <a href="{{ url_for('tailor.edit_profile') }}" class="btn btn-secondary">Edit Studio Profile</a>
+        </div>
+    </div>
+
+    <!-- Studio Metrics Grid -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon stat-icon-amber">⏳</div>
+            <div class="stat-info">
+                <h3>{{ pending_count }}</h3>
+                <p>Pending Quotes</p>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon stat-icon-indigo">🧵</div>
+            <div class="stat-info">
+                <h3>{{ active_count }}</h3>
+                <p>In Production</p>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon stat-icon-emerald">✨</div>
+            <div class="stat-info">
+                <h3>{{ ready_count }}</h3>
+                <p>Ready for Pickup</p>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon stat-icon-pink">💰</div>
+            <div class="stat-info">
+                <h3>{{ total_revenue|currency }}</h3>
+                <p>Delivered Volume</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Production Queue -->
+    <div style="margin-bottom: 40px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
+            <h2>Recent Orders in <span class="gradient-text">Queue</span></h2>
+            <a href="{{ url_for('tailor.orders') }}" class="btn btn-secondary btn-sm">Full Queue &rarr;</a>
+        </div>
+
+        {% if recent_orders %}
+            <div class="glass-card table-responsive" style="padding: 0;">
+                <table class="custom-table">
+                    <thead>
+                        <tr>
+                            <th>Order #</th>
+                            <th>Customer</th>
+                            <th>Garment / Service</th>
+                            <th>Quote</th>
+                            <th>Stage</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for o in recent_orders %}
+                        <tr>
+                            <td><strong>#{{ o.id }}</strong></td>
+                            <td>
+                                <strong>{{ o.customer.name }}</strong>
+                                <div style="font-size: 0.78rem; color: var(--text-muted);">{{ o.customer.phone or 'No phone' }}</div>
+                            </td>
+                            <td>
+                                <strong>{{ o.clothing_type }}</strong>
+                                <div style="font-size: 0.78rem; color: var(--text-muted);">{{ o.service_type|capitalize }}</div>
+                            </td>
+                            <td>
+                                {% if o.quotation %}
+                                    <strong style="color: #34d399;">{{ o.quotation|currency }}</strong>
+                                {% else %}
+                                    <span style="color: #fbbf24; font-weight: 600;">Needs Quote</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="status-badge status-{{ o.status }}">
+                                    {{ o.status_display }}
+                                </span>
+                            </td>
+                            <td>
+                                <a href="{{ url_for('tailor.order_details', order_id=o.id) }}" class="btn btn-primary btn-sm">
+                                    Manage Order &rarr;
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="glass-card" style="text-align: center; padding: 48px;">
+                <p style="color: var(--text-muted);">No orders in queue yet. Customers in your city will discover your studio soon!</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Recent Reviews Received -->
+    {% if recent_reviews %}
+    <div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
+            <h2>Latest Customer Ratings & Feedback</h2>
+            <a href="{{ url_for('tailor.reviews') }}" class="btn btn-secondary btn-sm">All Reviews &rarr;</a>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px;">
+            {% for r in recent_reviews %}
+            <div class="glass-card">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                    <strong>{{ r.customer.name }}</strong>
+                    <div class="rating-stars">
+                        {% for i in range(r.rating) %}★{% endfor %}
+                    </div>
+                </div>
+                <p style="color: var(--text-secondary); font-size: 0.88rem;">"{{ r.comment }}"</p>
+                <small style="color: var(--text-muted); font-size: 0.75rem; margin-top: 8px; display: block;">{{ r.created_at|date }}</small>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

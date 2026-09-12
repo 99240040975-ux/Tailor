@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}My Profile | Local Tailor Connect{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 760px;">
+    <div class="dashboard-header">
+        <div class="dashboard-title">
+            <h1>Customer <span class="gradient-text">Profile</span></h1>
+            <p>Manage your contact details and preferences for tailor deliveries.</p>
+        </div>
+    </div>
+
+    <div class="glass-card">
+        <form method="POST" action="{{ url_for('customer.profile') }}" enctype="multipart/form-data">
+            <div style="display: flex; align-items: center; gap: 24px; margin-bottom: 32px; padding-bottom: 24px; border-bottom: 1px solid var(--border-glass);">
+                <div class="tailor-avatar" style="width: 84px; height: 84px; font-size: 36px; border-radius: var(--radius-md);">
+                    {% if current_user.profile_pic %}
+                        <img src="{{ url_for('static', filename=current_user.profile_pic) }}" alt="{{ current_user.name }}" style="width: 100%; height: 100%; object-fit: cover; border-radius: var(--radius-md);">
+                    {% else %}
+                        👤
+                    {% endif %}
+                </div>
+                <div>
+                    <h3 style="margin-bottom: 4px;">{{ current_user.name }}</h3>
+                    <p style="color: var(--text-secondary); font-size: 0.85rem;">Account Role: <strong style="color: var(--accent-primary);">{{ current_user.role|capitalize }}</strong></p>
+                    <label class="btn btn-secondary btn-sm" style="margin-top: 10px; cursor: pointer;">
+                        Change Photo
+                        <input type="file" name="profile_pic" accept="image/*" style="display: none;">
+                    </label>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="name">Full Name</label>
+                <input type="text" id="name" name="name" class="form-control" value="{{ current_user.name }}" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="email">Email Address</label>
+                <input type="email" id="email" class="form-control" value="{{ current_user.email }}" disabled style="opacity: 0.6; cursor: not-allowed;">
+                <small style="color: var(--text-muted); font-size: 0.8rem;">Email address cannot be changed.</small>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="phone">Phone Number</label>
+                <input type="tel" id="phone" name="phone" class="form-control" value="{{ current_user.phone or '' }}" placeholder="+91 98765 43210">
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 28px;">
+                <a href="{{ url_for('customer.dashboard') }}" class="btn btn-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

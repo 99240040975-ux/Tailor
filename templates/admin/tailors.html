@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}Tailor Oversight | Admin Console{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="dashboard-header">
+        <div class="dashboard-title">
+            <h1>Tailor Studios <span class="gradient-text">Directory</span></h1>
+            <p>Review partner tailor profiles, monitor ratings, and grant artisan verification badges.</p>
+        </div>
+        <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary">&larr; Admin Dashboard</a>
+    </div>
+
+    <div class="glass-card table-responsive" style="padding: 0;">
+        <table class="custom-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Studio Name</th>
+                    <th>Manager</th>
+                    <th>City</th>
+                    <th>Rating</th>
+                    <th>Orders Count</th>
+                    <th>Verified Badge</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for t in tailors %}
+                <tr>
+                    <td><strong>#{{ t.id }}</strong></td>
+                    <td>
+                        <strong>{{ t.shop_name }}</strong>
+                        <div style="font-size: 0.78rem; color: var(--text-muted);">{{ t.specialization[:30] if t.specialization else 'Tailor' }}...</div>
+                    </td>
+                    <td>{{ t.user.name }}</td>
+                    <td>{{ t.city or 'N/A' }}</td>
+                    <td>
+                        <span class="rating-stars">★</span> <strong>{{ t.rating }}</strong> ({{ t.total_reviews }})
+                    </td>
+                    <td>{{ t.orders.count() }}</td>
+                    <td>
+                        {% if t.is_verified %}
+                            <span class="status-badge" style="background: rgba(59, 130, 246, 0.2); color: #60a5fa;">✓ Verified</span>
+                        {% else %}
+                            <span class="status-badge" style="background: rgba(255, 255, 255, 0.05); color: var(--text-muted);">Unverified</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{{ url_for('admin.tailor_details', tailor_id=t.id) }}" class="btn btn-secondary btn-sm">
+                            Inspect Studio &rarr;
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

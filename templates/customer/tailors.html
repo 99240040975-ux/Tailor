@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block title %}Discover Local Tailors | Local Tailor Connect{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="dashboard-header">
+        <div class="dashboard-title">
+            <h1>Discover <span class="gradient-text">Local Tailors</span></h1>
+            <p>Find master artisans, specialists in ethnic wear, suits, and quick alterations near you.</p>
+        </div>
+    </div>
+
+    <!-- Search & Filter Bar -->
+    <div class="glass-card" style="margin-bottom: 32px; padding: 20px;">
+        <form method="GET" action="{{ url_for('customer.tailors') }}" style="display: flex; flex-direction: column; gap: 16px;">
+            <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                <input type="text" name="q" class="form-control" style="flex: 2; min-width: 240px;" placeholder="Search by tailor name, suit, kurta, alteration..." value="{{ search_q or '' }}">
+
+                <select name="city" class="form-control" style="flex: 1; min-width: 160px;">
+                    <option value="">All Locations</option>
+                    {% for c in cities %}
+                        <option value="{{ c }}" {% if selected_city == c %}selected{% endif %}>{{ c }}</option>
+                    {% endfor %}
+                </select>
+
+                <select name="sort" class="form-control" style="flex: 1; min-width: 160px;">
+                    <option value="rating_desc" {% if selected_sort == 'rating_desc' %}selected{% endif %}>Highest Rated</option>
+                    <option value="experience_desc" {% if selected_sort == 'experience_desc' %}selected{% endif %}>Most Experienced</option>
+                    <option value="reviews_desc" {% if selected_sort == 'reviews_desc' %}selected{% endif %}>Most Reviews</option>
+                </select>
+
+                <button type="submit" class="btn btn-primary" style="min-width: 120px;">Search 🔍</button>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; padding-top: 12px; border-top: 1px solid var(--border-glass);">
+                <div style="display: flex; gap: 16px; align-items: center;">
+                    <label style="display: flex; align-items: center; gap: 8px; font-size: 0.88rem; color: var(--text-secondary); cursor: pointer;">
+                        <input type="checkbox" name="available" value="1" {% if available_only %}checked{% endif %}>
+                        Available for Orders
+                    </label>
+                </div>
+                {% if search_q or selected_city or available_only %}
+                    <a href="{{ url_for('customer.tailors') }}" style="font-size: 0.85rem; color: var(--danger);">Clear Filters &times;</a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+
+    <!-- Tailors Grid -->
+    {% if tailors %}
+        <div class="tailors-grid">
+            {% for tailor in tailors %}
+            <div class="tailor-card">
+                <div>
+                    <div class="tailor-top">
+                        <div class="tailor-avatar">
+                            {% if tailor.user.profile_pic %}
+                                <img src="{{ url_for('static', filename=tailor.user.profile_pic) }}" alt="{{ tailor.shop_name }}" style="width: 100%; height: 100%; object-fit: cover; border-radius: var(--radius-sm);">
+                            {% else %}
+                                ✂️
+                            {% endif %}
+                        </div>
+                        <div>
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                <h3 style="font-size: 1.15rem;">{{ tailor.shop_name }}</h3>
+                                {% if tailor.is_verified %}
+                                    <span title="Verified Artisan" style="color: #60a5fa; font-size: 1rem;">✓</span>
+                                {% endif %}
+                            </div>
+                            <div style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 2px;">
+                                📍 {{ tailor.city or 'Local' }} &bull; {{ tailor.experience }} years exp.
+                            </div>
+                            <div class="rating-stars" style="margin-top: 6px;">
+                                ★ <span class="rating-score">{{ tailor.rating }}</span>
+                                <span style="color: var(--text-muted); font-size: 0.8rem;">({{ tailor.total_reviews }} reviews)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <p style="color: var(--text-secondary); font-size: 0.88rem; line-height: 1.45; margin-bottom: 12px;">
+                        {{ tailor.description[:110] if tailor.description else 'Specializing in custom design, fitting alterations, and traditional bespoke tailoring.' }}...
+                    </p>
+
+                    <div class="tailor-tags">
+                        {% if tailor.specialization %}
+                            {% for spec in tailor.specialization.split(',') %}
+                                <span class="tailor-tag">{{ spec.strip() }}</span>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div style="border-top: 1px solid var(--border-glass); padding-top: 16px; margin-top: 10px; display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">Estimated Price</div>
+                        <span style="font-weight: 700; color: var(--text-primary); font-size: 0.95rem;">
+                            {{ tailor.price_range or 'Custom quote' }}
+                        </span>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <a href="{{ url_for('customer.tailor_details', tailor_id=tailor.id) }}" class="btn btn-secondary btn-sm">Profile</a>
+                        <a href="{{ url_for('orders.create_order', tailor_id=tailor.id) }}" class="btn btn-primary btn-sm">Order</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="glass-card" style="text-align: center; padding: 60px 20px;">
+            <div style="font-size: 48px; margin-bottom: 16px;">🔍</div>
+            <h3>No Tailors Found Matching Your Criteria</h3>
+            <p style="color: var(--text-secondary); max-width: 450px; margin: 8px auto 24px;">
+                Try adjusting your search terms, changing the location filter, or exploring all available tailors.
+            </p>
+            <a href="{{ url_for('customer.tailors') }}" class="btn btn-primary">Reset All Filters</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

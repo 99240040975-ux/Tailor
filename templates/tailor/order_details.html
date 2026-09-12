@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Order #{{ order.id }} | Tailor Studio{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="dashboard-header">
+        <div class="dashboard-title">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 6px;">
+                <h1>Production Order <span class="gradient-text">#{{ order.id }}</span></h1>
+                <span class="status-badge status-{{ order.status }}">
+                    {{ order.status_display }}
+                </span>
+            </div>
+            <p>Customer: <strong>{{ order.customer.name }}</strong> (📞 {{ order.customer.phone or 'N/A' }}) &bull; Placed: {{ order.created_at|date }}</p>
+        </div>
+        <div style="display: flex; gap: 12px;">
+            <a href="{{ url_for('customer.messages', user_id=order.customer_id, order_id=order.id) }}" class="btn btn-secondary">
+                💬 Chat with Customer
+            </a>
+            <a href="{{ url_for('tailor.orders') }}" class="btn btn-outline">&larr; Back to Queue</a>
+        </div>
+    </div>
+
+    <!-- Production Stage Advance Form -->
+    <div class="glass-card" style="margin-bottom: 28px; background: rgba(99, 102, 241, 0.06); border-color: rgba(99, 102, 241, 0.25);">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+            <div>
+                <h3>Update Production Stage</h3>
+                <p style="color: var(--text-secondary); font-size: 0.85rem;">Advancing the stage sends an automatic status update notification to the customer.</p>
+            </div>
+
+            <form method="POST" action="{{ url_for('orders.update_status', order_id=order.id) }}" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                <select name="status" class="form-control" style="width: auto; min-width: 220px;">
+                    {% for code, label in stages %}
+                        <option value="{{ code }}" {% if order.status == code %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="btn btn-primary">Update Status &rarr;</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Submit Quotation Card (if order is pending) -->
+    {% if order.status == 'pending' %}
+    <div class="glass-card" style="border-color: #fbbf24; margin-bottom: 28px;">
+        <h3 style="color: #fbbf24; margin-bottom: 12px;">💰 Provide Digital Price Quotation</h3>
+        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 20px;">
+            Review the customer's design requirements and measurements below, then enter your price quote and expected delivery date.
+        </p>
+
+        <form method="POST" action="{{ url_for('orders.submit_quotation', order_id=order.id) }}">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 16px;">
+                <div class="form-group">
+                    <label class="form-label" for="quotation">Estimated Price Quote (₹) *</label>
+                    <input type="number" step="1" id="quotation" name="quotation" class="form-control" required placeholder="e.g. 1500" value="{{ order.quotation or '' }}">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="expected_date">Target Completion Date</label>
+                    <input type="date" id="expected_date" name="expected_date" class="form-control" value="{{ order.expected_date or '' }}">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="quotation_notes">Quotation Breakdown & Fabric Notes</label>
+                <textarea id="quotation_notes" name="quotation_notes" class="form-control" rows="2" placeholder="e.g. Includes lining and buttons. Fabric to be supplied by client or sourced by studio for extra charge.">{{ order.quotation_notes or '' }}</textarea>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-lg">Send Quotation to Customer &rarr;</button>
+        </form>
+    </div>
+    {% endif %}
+
+    <!-- Order Specs & Measurements Layout -->
+    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 28px;" class="tailor-order-layout">
+        <div>
+            <!-- Garment Specs -->
+            <div class="glass-card" style="margin-bottom: 24px;">
+                <h3 style="margin-bottom: 16px;">Garment & Styling Specifications</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 18px; font-size: 0.95rem;">
+                    <div><span style="color: var(--text-muted);">Service:</span> <strong>{{ order.service_type|capitalize }}</strong></div>
+                    <div><span style="color: var(--text-muted);">Clothing:</span> <strong>{{ order.clothing_type }}</strong></div>
+                    <div><span style="color: var(--text-muted);">Current Quote:</span> <strong>{{ order.quotation|currency if order.quotation else 'Pending' }}</strong></div>
+                    <div><span style="color: var(--text-muted);">Due Date:</span> <strong>{{ order.expected_date|date if order.expected_date else 'TBD' }}</strong></div>
+                </div>
+
+                <h4 style="margin-bottom: 8px; font-size: 0.95rem;">Customer Requirements:</h4>
+                <p style="color: var(--text-secondary); line-height: 1.6; background: rgba(255, 255, 255, 0.02); padding: 14px; border-radius: var(--radius-sm); border: 1px solid var(--border-glass);">
+                    {{ order.description }}
+                </p>
+
+                {% if order.reference_image %}
+                    <h4 style="margin: 20px 0 10px; font-size: 0.95rem;">Reference Design Image:</h4>
+                    <a href="{{ url_for('static', filename=order.reference_image) }}" target="_blank">
+                        <img src="{{ url_for('static', filename=order.reference_image) }}" alt="Design Reference" style="max-width: 280px; border-radius: var(--radius-sm); border: 1px solid var(--border-glass);">
+                    </a>
+                {% endif %}
+            </div>
+
+            <!-- Digital Measurement Sheet -->
+            <div class="glass-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <h3>📐 Digital Measurement Sheet</h3>
+                    {% if order.measurement %}
+                        <span class="status-badge" style="background: rgba(99, 102, 241, 0.15); color: #818cf8;">
+                            {{ order.measurement.profile_name }} ({{ order.measurement.unit }})
+                        </span>
+                    {% endif %}
+                </div>
+
+                {% if order.measurement %}
+                    <div class="meas-metrics-grid">
+                        <div class="meas-metric-box"><div class="meas-metric-label">Chest</div><div class="meas-metric-val">{{ order.measurement.chest or '-' }}</div></div>
+                        <div class="meas-metric-box"><div class="meas-metric-label">Waist</div><div class="meas-metric-val">{{ order.measurement.waist or '-' }}</div></div>
+                        <div class="meas-metric-box"><div class="meas-metric-label">Hip</div><div class="meas-metric-val">{{ order.measurement.hip or '-' }}</div></div>
+                        <div class="meas-metric-box"><div class="meas-metric-label">Shoulder</div><div class="meas-metric-val">{{ order.measurement.shoulder or '-' }}</div></div>
+                        <div class="meas-metric-box"><div class="meas-metric-label">Sleeve</div><div class="meas-metric-val">{{ order.measurement.sleeve or '-' }}</div></div>
+                        <div class="meas-metric-box"><div class="meas-metric-label">Neck</div><div class="meas-metric-val">{{ order.measurement.neck or '-' }}</div></div>
+                        <div class="meas-metric-box"><div class="meas-metric-label">Inseam</div><div class="meas-metric-val">{{ order.measurement.inseam or '-' }}</div></div>
+                        <div class="meas-metric-box"><div class="meas-metric-label">Height</div><div class="meas-metric-val">{{ order.measurement.height or '-' }}</div></div>
+                    </div>
+
+                    {% if order.measurement.notes %}
+                        <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 14px; background: rgba(255, 255, 255, 0.02); padding: 10px; border-radius: var(--radius-sm);">
+                            <em>Client Note:</em> {{ order.measurement.notes }}
+                        </p>
+                    {% endif %}
+                {% else %}
+                    <p style="color: var(--text-muted); font-size: 0.9rem;">
+                        No digital measurement profile was attached by the customer. Please contact the customer via in-app chat to obtain or confirm measurements.
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Sidebar / Customer & Delivery Info -->
+        <div>
+            <div class="glass-card" style="margin-bottom: 24px;">
+                <h4 style="margin-bottom: 14px;">Customer Info</h4>
+                <p style="color: var(--text-primary); font-weight: 700; font-size: 1.05rem;">{{ order.customer.name }}</p>
+                <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 4px;">
+                    📧 {{ order.customer.email }}<br>
+                    📞 {{ order.customer.phone or 'No phone registered' }}
+                </p>
+
+                <div style="margin-top: 18px;">
+                    <a href="{{ url_for('customer.messages', user_id=order.customer_id, order_id=order.id) }}" class="btn btn-secondary btn-sm" style="width: 100%;">
+                        Open Order Chat 💬
+                    </a>
+                </div>
+            </div>
+
+            <div class="glass-card">
+                <h4 style="margin-bottom: 14px;">Delivery Method</h4>
+                <p style="font-size: 0.95rem;">
+                    Mode: <strong style="color: var(--accent-primary);">{{ order.delivery_method|capitalize }}</strong>
+                </p>
+
+                {% if order.delivery_method == 'delivery' and order.delivery_address %}
+                    <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 8px;">
+                        <strong>Shipment Address:</strong><br>
+                        {{ order.delivery_address }}
+                    </p>
+                {% else %}
+                    <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 8px;">
+                        Customer will pick up garment from your workshop once ready.
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

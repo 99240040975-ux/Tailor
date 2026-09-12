@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}Customer Reviews | Local Tailor Connect{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 840px;">
+    {% if is_submit_mode %}
+        <div class="dashboard-header">
+            <div class="dashboard-title">
+                <h1>Review Your <span class="gradient-text">Experience</span></h1>
+                <p>Order #{{ order.id }} &bull; <strong>{{ tailor.shop_name }}</strong></p>
+            </div>
+            <a href="{{ url_for('orders.order_details', order_id=order.id) }}" class="btn btn-secondary">&larr; Back to Order</a>
+        </div>
+
+        <div class="glass-card">
+            <form method="POST" action="{{ url_for('reviews.submit_review', order_id=order.id) }}">
+                <div class="form-group">
+                    <label class="form-label" for="rating">Rating (1 to 5 Stars)</label>
+                    <select id="rating" name="rating" class="form-control" style="font-size: 1.1rem; color: #fbbf24;">
+                        <option value="5" selected>★★★★★ - 5 Stars (Exceptional Fit & Craft)</option>
+                        <option value="4">★★★★☆ - 4 Stars (Good Quality)</option>
+                        <option value="3">★★★☆☆ - 3 Stars (Average / Minor Issues)</option>
+                        <option value="2">★★☆☆☆ - 2 Stars (Needs Improvement)</option>
+                        <option value="1">★☆☆☆☆ - 1 Star (Unsatisfactory)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="comment">Your Feedback & Fitting Experience</label>
+                    <textarea id="comment" name="comment" class="form-control" rows="5" required placeholder="How was the precision of measurements? Was the garment delivered on schedule? How was the stitching and fabric handling?"></textarea>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px;">
+                    <a href="{{ url_for('orders.order_details', order_id=order.id) }}" class="btn btn-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-primary btn-lg">Publish Review ★</button>
+                </div>
+            </form>
+        </div>
+
+    {% else %}
+        <div class="dashboard-header">
+            <div class="dashboard-title">
+                <h1>Customer <span class="gradient-text">Reviews</span></h1>
+                {% if tailor %}
+                    <p>Verified reviews and ratings for <strong>{{ tailor.shop_name }}</strong></p>
+                {% else %}
+                    <p>Recent reviews from all across our tailor community.</p>
+                {% endif %}
+            </div>
+            {% if tailor %}
+                <a href="{{ url_for('customer.tailor_details', tailor_id=tailor.id) }}" class="btn btn-secondary">&larr; Back to Studio</a>
+            {% endif %}
+        </div>
+
+        {% if reviews %}
+            <div style="display: flex; flex-direction: column; gap: 18px;">
+                {% for r in reviews %}
+                <div class="glass-card">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                        <div>
+                            <strong style="font-size: 1.05rem; color: var(--text-primary);">{{ r.customer.name }}</strong>
+                            <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">
+                                Tailor: <strong>{{ r.tailor.shop_name }}</strong> &bull; Order #{{ r.order_id }}
+                            </div>
+                        </div>
+                        <div class="rating-stars" style="font-size: 1rem;">
+                            {% for i in range(r.rating) %}★{% endfor %}
+                        </div>
+                    </div>
+                    <p style="color: var(--text-secondary); line-height: 1.6; font-size: 0.95rem;">
+                        {{ r.comment }}
+                    </p>
+                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 10px;">
+                        {{ r.created_at|date }}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="glass-card" style="text-align: center; padding: 48px;">
+                <p style="color: var(--text-muted);">No reviews found.</p>
+            </div>
+        {% endif %}
+    {% endif %}
+</div>
+{% endblock %}
