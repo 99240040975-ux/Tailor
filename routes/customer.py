@@ -70,24 +70,41 @@ def profile():
 
 @customer_bp.route('/tailors')
 def tailors():
-    """Discover local tailors with search and filters."""
+    """Discover local tailors with location hierarchy search and filters."""
+    from models.location import District, Taluk, City, Town, Village, State
+
     search_q = request.args.get('q', '').strip()
-    city = request.args.get('city', '').strip()
+    district_id = request.args.get('district_id', type=int)
+    taluk_id = request.args.get('taluk_id', type=int)
+    city_id = request.args.get('city_id', type=int)
+    town_id = request.args.get('town_id', type=int)
+    village_id = request.args.get('village_id', type=int)
     specialization = request.args.get('specialization', '').strip()
     min_rating = request.args.get('min_rating', type=float)
     available_only = request.args.get('available') == '1'
     sort = request.args.get('sort', 'rating_desc')
 
-    query = Tailor.query
+    # Only show active tailors
+    query = Tailor.query.filter(Tailor.is_active == True)
 
     if search_q:
         query = query.filter(
             (Tailor.shop_name.ilike(f'%{search_q}%')) |
             (Tailor.specialization.ilike(f'%{search_q}%')) |
-            (Tailor.description.ilike(f'%{search_q}%'))
+            (Tailor.description.ilike(f'%{search_q}%')) |
+            (Tailor.city.ilike(f'%{search_q}%')) |
+            (Tailor.address.ilike(f'%{search_q}%'))
         )
-    if city:
-        query = query.filter(Tailor.city.ilike(f'%{city}%'))
+    if district_id:
+        query = query.filter(Tailor.district_id == district_id)
+    if taluk_id:
+        query = query.filter(Tailor.taluk_id == taluk_id)
+    if city_id:
+        query = query.filter(Tailor.city_id == city_id)
+    if town_id:
+        query = query.filter(Tailor.town_id == town_id)
+    if village_id:
+        query = query.filter(Tailor.village_id == village_id)
     if specialization:
         query = query.filter(Tailor.specialization.ilike(f'%{specialization}%'))
     if min_rating:
@@ -106,14 +123,18 @@ def tailors():
         query = query.order_by(Tailor.id.desc())
 
     tailors_list = query.all()
-    cities = [c[0] for c in db.session.query(Tailor.city).distinct().all() if c[0]]
+
+    # Load Tamil Nadu districts for quick dropdown selection
+    tn_state = State.query.filter(State.name.ilike('%Tamil Nadu%')).first()
+    districts = District.query.filter_by(state_id=tn_state.id).order_by(District.name.asc()).all() if tn_state else []
 
     return render_template(
         'customer/tailors.html',
         tailors=tailors_list,
-        cities=cities,
+        districts=districts,
         search_q=search_q,
-        selected_city=city,
+        selected_district=district_id,
+        selected_taluk=taluk_id,
         selected_spec=specialization,
         selected_sort=sort,
         available_only=available_only

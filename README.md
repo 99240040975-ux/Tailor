@@ -141,8 +141,79 @@ local-tailor-connect/
 │   ├── tailor/                # Tailor studio views (8 templates)
 │   └── admin/                 # Admin console views (8 templates)
 │
-└── static/                    # Frontend assets
-    ├── css/                   # Design system, auth, dashboard & responsive styles
-    ├── js/                    # Core interactivity, AJAX preview & form handlers
-    └── uploads/               # Profile and reference image uploads
+├── scripts/                   # Automation and data ingestion scripts
+│   └── import_tamilnadu_locations.py  # LGD Tamil Nadu location importer
+│
+├── tests/                     # Automated test suites
+│   └── test_tn_locations.py   # Test suite for location APIs & discovery
+│
+├── static/                    # Frontend assets
+│   ├── css/                   # Design system, auth, dashboard & responsive styles
+│   ├── js/                    # Cascading dropdowns (location_cascade.js), auth & UI
+│   └── uploads/               # Profile and reference image uploads
 ```
+
+---
+
+## 🏛️ Official Tamil Nadu Administrative Location Dataset
+
+The platform integrates the complete, official administrative location hierarchy for **Tamil Nadu (State Code: 33)** sourced directly from the **Government of India Local Government Directory (LGD)** ([https://lgdirectory.gov.in](https://lgdirectory.gov.in)).
+
+### Hierarchy Structure
+```
+Tamil Nadu (State Code: 33)
+  └── Districts (All 38 Districts)
+        └── Taluks / Sub-districts (313 Taluks)
+              ├── Cities (Municipal Corporations & Large Urban Local Bodies)
+              └── Towns (Municipalities & Town Panchayats)
+                    └── Revenue Villages (18,482 Official LGD Villages)
+```
+
+### Imported Record Counts
+| Administrative Level | Table Name | Total Records | Notes |
+| :--- | :--- | :--- | :--- |
+| **State** | `states` | 1 (Tamil Nadu) | LGD Code `33` |
+| **Districts** | `districts` | 38 | Complete coverage across TN |
+| **Taluks** | `taluks` | 313 | All revenue sub-districts |
+| **Cities** | `cities` | 742 | City corporations & urban centers |
+| **Towns** | `towns` | 624 | Municipalities & Town Panchayats |
+| **Revenue Villages** | `villages` | 18,482 | Full official revenue villages |
+
+### Running the Import Script
+The import script is standalone, fully cached, and 100% idempotent:
+```bash
+python scripts/import_tamilnadu_locations.py
+```
+- Automatically downloads and caches official LGD datasets to `data/lgd_tamil_nadu/`.
+- Preserves relational foreign key parent-child integrity (`state_id` → `district_id` → `taluk_id` → `town_id`/`village_id`).
+- Can be safely re-executed anytime without duplicating records or disrupting live data.
+
+### Location REST API Endpoints
+| HTTP Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `GET` | `/api/locations/states` | List all states (Tamil Nadu prioritized) |
+| `GET` | `/api/locations/districts/<state_id>` | List all 38 districts in state |
+| `GET` | `/api/locations/taluks/<district_id>` | List all sub-districts / taluks in district |
+| `GET` | `/api/locations/cities/<taluk_id>` | List cities in taluk or district (`?district_id=`) |
+| `GET` | `/api/locations/towns/<city_id>` | List towns in city or taluk (`?taluk_id=`) |
+| `GET` | `/api/locations/villages/<town_id>` | List villages (`?taluk_id=` supported) |
+| `GET` | `/api/locations/villages-by-taluk/<taluk_id>` | List all villages under a specific taluk |
+| `GET` | `/api/locations/search?q=<query>` | Fast autocomplete search across administrative units |
+
+### Tailor Registration & Customer Search Integration
+- **Cascading Dropdowns**: Dynamic JavaScript dropdown selection powered by `static/js/location_cascade.js` (State → District → Taluk → City/Town → Village).
+- **GPS Coordinates**: One-click "📍 Detect Current Location" button saves precise `latitude` and `longitude`.
+- **Active Artisan Filtering**: Search only displays registered active tailors (`is_active == True`).
+- **Empty State**: When no tailors are registered in a selected location, the page displays:
+  `"No registered tailors found in this location."`
+
+### Running the Test Suite
+```bash
+python tests/test_tn_locations.py
+```
+All 4 test suites validate:
+1. Complete Tamil Nadu hierarchy counts and district presence.
+2. All 6 REST API endpoints.
+3. Tailor registration with location foreign keys and coordinates.
+4. Customer discovery search and empty state message.
+

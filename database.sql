@@ -1,5 +1,5 @@
 -- =============================================================
---  Local Tailor Connect — Full Database Schema + Seed Data
+--  Local Tailor Connect — Full Database Schema + Location Hierarchy
 --  Engine: MySQL 8.0+
 -- =============================================================
 
@@ -8,6 +8,122 @@ CREATE DATABASE IF NOT EXISTS local_tailor_connect
     COLLATE utf8mb4_unicode_ci;
 
 USE local_tailor_connect;
+
+-- -----------------------------------------------------------
+-- 1. STATES
+-- -----------------------------------------------------------
+CREATE TABLE IF NOT EXISTS states (
+    id         INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    name       VARCHAR(100) NOT NULL UNIQUE,
+    code       VARCHAR(10),
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_states_name (name)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- -----------------------------------------------------------
+-- 2. DISTRICTS
+-- -----------------------------------------------------------
+CREATE TABLE IF NOT EXISTS districts (
+    id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    state_id    INT UNSIGNED NOT NULL,
+    name        VARCHAR(100) NOT NULL,
+    code        VARCHAR(20),
+    census_code VARCHAR(20),
+    created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_districts_state FOREIGN KEY (state_id) REFERENCES states(id) ON DELETE CASCADE,
+    INDEX idx_districts_state (state_id),
+    INDEX idx_districts_name (name)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- -----------------------------------------------------------
+-- 3. TALUKS
+-- -----------------------------------------------------------
+CREATE TABLE IF NOT EXISTS taluks (
+    id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    district_id INT UNSIGNED NOT NULL,
+    name        VARCHAR(120) NOT NULL,
+    code        VARCHAR(20),
+    census_code VARCHAR(20),
+    created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_taluks_district FOREIGN KEY (district_id) REFERENCES districts(id) ON DELETE CASCADE,
+    INDEX idx_taluks_district (district_id),
+    INDEX idx_taluks_name (name)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- -----------------------------------------------------------
+-- 4. CITIES
+-- -----------------------------------------------------------
+CREATE TABLE IF NOT EXISTS cities (
+    id             INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    district_id    INT UNSIGNED NOT NULL,
+    taluk_id       INT UNSIGNED,
+    name           VARCHAR(150) NOT NULL,
+    code           VARCHAR(20),
+    localbody_type VARCHAR(50),
+    created_at     DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_cities_district FOREIGN KEY (district_id) REFERENCES districts(id) ON DELETE CASCADE,
+    CONSTRAINT fk_cities_taluk    FOREIGN KEY (taluk_id) REFERENCES taluks(id) ON DELETE SET NULL,
+    INDEX idx_cities_district (district_id),
+    INDEX idx_cities_taluk (taluk_id),
+    INDEX idx_cities_name (name)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- -----------------------------------------------------------
+-- 5. TOWNS
+-- -----------------------------------------------------------
+CREATE TABLE IF NOT EXISTS towns (
+    id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    district_id INT UNSIGNED NOT NULL,
+    taluk_id    INT UNSIGNED,
+    city_id     INT UNSIGNED,
+    name        VARCHAR(150) NOT NULL,
+    code        VARCHAR(20),
+    created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_towns_district FOREIGN KEY (district_id) REFERENCES districts(id) ON DELETE CASCADE,
+    CONSTRAINT fk_towns_taluk    FOREIGN KEY (taluk_id) REFERENCES taluks(id) ON DELETE SET NULL,
+    CONSTRAINT fk_towns_city     FOREIGN KEY (city_id) REFERENCES cities(id) ON DELETE SET NULL,
+    INDEX idx_towns_district (district_id),
+    INDEX idx_towns_taluk (taluk_id),
+    INDEX idx_towns_name (name)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- -----------------------------------------------------------
+-- 6. VILLAGES
+-- -----------------------------------------------------------
+CREATE TABLE IF NOT EXISTS villages (
+    id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    district_id INT UNSIGNED NOT NULL,
+    taluk_id    INT UNSIGNED NOT NULL,
+    town_id     INT UNSIGNED,
+    name        VARCHAR(150) NOT NULL,
+    code        VARCHAR(20),
+    census_code VARCHAR(20),
+    created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_villages_district FOREIGN KEY (district_id) REFERENCES districts(id) ON DELETE CASCADE,
+    CONSTRAINT fk_villages_taluk    FOREIGN KEY (taluk_id) REFERENCES taluks(id) ON DELETE CASCADE,
+    CONSTRAINT fk_villages_town     FOREIGN KEY (town_id) REFERENCES towns(id) ON DELETE SET NULL,
+    INDEX idx_villages_district (district_id),
+    INDEX idx_villages_taluk (taluk_id),
+    INDEX idx_villages_name (name)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- -----------------------------------------------------------
+-- 7. LOCALITIES
+-- -----------------------------------------------------------
+CREATE TABLE IF NOT EXISTS localities (
+    id         INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    city_id    INT UNSIGNED,
+    town_id    INT UNSIGNED,
+    village_id INT UNSIGNED,
+    name       VARCHAR(150) NOT NULL,
+    pincode    VARCHAR(10),
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_localities_city    FOREIGN KEY (city_id) REFERENCES cities(id) ON DELETE SET NULL,
+    CONSTRAINT fk_localities_town    FOREIGN KEY (town_id) REFERENCES towns(id) ON DELETE SET NULL,
+    CONSTRAINT fk_localities_village FOREIGN KEY (village_id) REFERENCES villages(id) ON DELETE SET NULL,
+    INDEX idx_localities_name (name),
+    INDEX idx_localities_pincode (pincode)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- -----------------------------------------------------------
 -- USERS
@@ -30,23 +146,46 @@ CREATE TABLE IF NOT EXISTS users (
 -- TAILORS
 -- -----------------------------------------------------------
 CREATE TABLE IF NOT EXISTS tailors (
-    id            INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    user_id       INT UNSIGNED NOT NULL UNIQUE,
-    shop_name     VARCHAR(150) NOT NULL,
+    id             INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id        INT UNSIGNED NOT NULL UNIQUE,
+    shop_name      VARCHAR(150) NOT NULL,
     specialization VARCHAR(200),
-    address       TEXT,
-    city          VARCHAR(100),
-    description   TEXT,
-    experience    INT UNSIGNED DEFAULT 0,
-    price_range   VARCHAR(50),
-    availability  TINYINT(1)  NOT NULL DEFAULT 1,
-    rating        DECIMAL(3,2) NOT NULL DEFAULT 0.00,
-    total_reviews INT UNSIGNED NOT NULL DEFAULT 0,
-    is_verified   TINYINT(1)  NOT NULL DEFAULT 0,
-    created_at    DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_tailors_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    address        TEXT,
+    city           VARCHAR(100),
+    description    TEXT,
+    experience     INT UNSIGNED DEFAULT 0,
+    price_range    VARCHAR(50),
+    availability   TINYINT(1)  NOT NULL DEFAULT 1,
+    rating         DECIMAL(3,2) NOT NULL DEFAULT 0.00,
+    total_reviews  INT UNSIGNED NOT NULL DEFAULT 0,
+    
+    -- Hierarchical Location references
+    state_id       INT UNSIGNED,
+    district_id    INT UNSIGNED,
+    taluk_id       INT UNSIGNED,
+    city_id        INT UNSIGNED,
+    town_id        INT UNSIGNED,
+    village_id     INT UNSIGNED,
+    
+    latitude       DECIMAL(10,8),
+    longitude      DECIMAL(11,8),
+    is_verified    TINYINT(1)  NOT NULL DEFAULT 0,
+    is_active      TINYINT(1)  NOT NULL DEFAULT 1,
+    created_at     DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    
+    CONSTRAINT fk_tailors_user     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    CONSTRAINT fk_tailors_state    FOREIGN KEY (state_id) REFERENCES states(id) ON DELETE SET NULL,
+    CONSTRAINT fk_tailors_district FOREIGN KEY (district_id) REFERENCES districts(id) ON DELETE SET NULL,
+    CONSTRAINT fk_tailors_taluk    FOREIGN KEY (taluk_id) REFERENCES taluks(id) ON DELETE SET NULL,
+    CONSTRAINT fk_tailors_city     FOREIGN KEY (city_id) REFERENCES cities(id) ON DELETE SET NULL,
+    CONSTRAINT fk_tailors_town     FOREIGN KEY (town_id) REFERENCES towns(id) ON DELETE SET NULL,
+    CONSTRAINT fk_tailors_village  FOREIGN KEY (village_id) REFERENCES villages(id) ON DELETE SET NULL,
+    
     INDEX idx_tailors_city (city),
+    INDEX idx_tailors_district (district_id),
+    INDEX idx_tailors_taluk (taluk_id),
     INDEX idx_tailors_rating (rating DESC),
+    INDEX idx_tailors_is_active (is_active),
     INDEX idx_tailors_availability (availability)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -85,6 +224,7 @@ CREATE TABLE IF NOT EXISTS orders (
     description      TEXT,
     reference_image  VARCHAR(255),
     quotation        DECIMAL(10,2),
+    quotation_notes  TEXT,
     status           ENUM('pending','quoted','confirmed','cutting','stitching',
                           'alteration','quality_check','ready','delivered','cancelled')
                      NOT NULL DEFAULT 'pending',
@@ -135,17 +275,3 @@ CREATE TABLE IF NOT EXISTS reviews (
     CONSTRAINT fk_rev_order    FOREIGN KEY (order_id)    REFERENCES orders(id)   ON DELETE CASCADE,
     INDEX idx_rev_tailor (tailor_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
--- -----------------------------------------------------------
--- SEED DATA (passwords are bcrypt of "password123")
--- -----------------------------------------------------------
-INSERT INTO users (name, email, password, phone, role) VALUES
-('Admin User',       'admin@tailor.com',   'pbkdf2:sha256:600000$seed$admin_hash_placeholder',   '9000000001', 'admin'),
-('Arjun Kumar',      'arjun@example.com',  'pbkdf2:sha256:600000$seed$customer_hash_placeholder', '9000000002', 'customer'),
-('Priya Sharma',     'priya@example.com',  'pbkdf2:sha256:600000$seed$customer_hash_placeholder', '9000000003', 'customer'),
-('Ravi Tailors',     'ravi@tailor.com',    'pbkdf2:sha256:600000$seed$tailor_hash_placeholder',   '9000000004', 'tailor'),
-('Meena Creations',  'meena@tailor.com',   'pbkdf2:sha256:600000$seed$tailor_hash_placeholder',   '9000000005', 'tailor');
-
-INSERT INTO tailors (user_id, shop_name, specialization, address, city, description, experience, price_range, availability, rating, total_reviews, is_verified) VALUES
-(4, 'Ravi Master Tailors',  'Mens Suits, Sherwanis, Kurtas',    '12, MG Road', 'Bangalore', 'Expert in ethnic and formal wear with 15 years experience.', 15, '₹500 - ₹5000',  1, 4.70, 34, 1),
-(5, 'Meena Fashion Studio', 'Ladies Suits, Blouses, Alterations','7, Anna Nagar', 'Chennai', 'Specializing in ladies wear and designer blouses.', 10, '₹300 - ₹3000', 1, 4.50, 28, 1);

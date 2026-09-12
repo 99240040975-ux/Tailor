@@ -60,6 +60,7 @@ def create_app(config_name=None):
     from routes.orders import orders_bp
     from routes.measurements import measurements_bp
     from routes.reviews import reviews_bp
+    from routes.locations import locations_bp
 
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(customer_bp, url_prefix='/customer')
@@ -68,6 +69,7 @@ def create_app(config_name=None):
     app.register_blueprint(orders_bp, url_prefix='/orders')
     app.register_blueprint(measurements_bp, url_prefix='/measurements')
     app.register_blueprint(reviews_bp, url_prefix='/reviews')
+    app.register_blueprint(locations_bp, url_prefix='/api/locations')
 
     # Root route
     @app.route('/')

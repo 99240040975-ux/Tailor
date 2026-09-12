@@ -69,6 +69,21 @@ def register():
         shop_name = request.form.get('shop_name', '').strip()
         city = request.form.get('city', '').strip()
         specialization = request.form.get('specialization', '').strip()
+        address = request.form.get('address', '').strip()
+
+        # Location hierarchy IDs
+        state_id = request.form.get('state_id', type=int) or None
+        district_id = request.form.get('district_id', type=int) or None
+        taluk_id = request.form.get('taluk_id', type=int) or None
+        city_id = request.form.get('city_id', type=int) or None
+        town_id = request.form.get('town_id', type=int) or None
+        village_id = request.form.get('village_id', type=int) or None
+
+        # Coordinates
+        lat_val = request.form.get('latitude', '').strip()
+        lng_val = request.form.get('longitude', '').strip()
+        latitude = float(lat_val) if lat_val else None
+        longitude = float(lng_val) if lng_val else None
 
         if role not in ['customer', 'tailor']:
             role = 'customer'
@@ -116,16 +131,27 @@ def register():
         db.session.add(new_user)
         db.session.flush()
 
-        # If tailor, create tailor profile
+        # If tailor, create tailor profile with location hierarchy
         if role == 'tailor':
             tailor_profile = Tailor(
                 user_id=new_user.id,
                 shop_name=shop_name or f"{name}'s Atelier",
-                city=city or 'City Center',
+                city=city or 'Tamil Nadu',
+                address=address or None,
+                state_id=state_id,
+                district_id=district_id,
+                taluk_id=taluk_id,
+                city_id=city_id,
+                town_id=town_id,
+                village_id=village_id,
+                latitude=latitude,
+                longitude=longitude,
                 specialization=specialization or 'Custom Tailoring & Alterations',
                 experience=1,
                 price_range='₹300 - ₹2000',
-                availability=True
+                availability=True,
+                is_verified=True,
+                is_active=True
             )
             db.session.add(tailor_profile)
 

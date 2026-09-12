@@ -7,22 +7,15 @@
     <div class="dashboard-header">
         <div class="dashboard-title">
             <h1>Discover <span class="gradient-text">Local Tailors</span></h1>
-            <p>Find master artisans, specialists in ethnic wear, suits, and quick alterations near you.</p>
+            <p>Find master artisans, specialists in ethnic wear, suits, and quick alterations across Tamil Nadu.</p>
         </div>
     </div>
 
-    <!-- Search & Filter Bar -->
-    <div class="glass-card" style="margin-bottom: 32px; padding: 20px;">
+    <!-- Search & Location Hierarchy Filter Bar -->
+    <div class="glass-card" style="margin-bottom: 32px; padding: 24px;">
         <form method="GET" action="{{ url_for('customer.tailors') }}" style="display: flex; flex-direction: column; gap: 16px;">
             <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-                <input type="text" name="q" class="form-control" style="flex: 2; min-width: 240px;" placeholder="Search by tailor name, suit, kurta, alteration..." value="{{ search_q or '' }}">
-
-                <select name="city" class="form-control" style="flex: 1; min-width: 160px;">
-                    <option value="">All Locations</option>
-                    {% for c in cities %}
-                        <option value="{{ c }}" {% if selected_city == c %}selected{% endif %}>{{ c }}</option>
-                    {% endfor %}
-                </select>
+                <input type="text" name="q" class="form-control" style="flex: 2; min-width: 240px;" placeholder="Search by tailor name, suit, blouse, bridal..." value="{{ search_q or '' }}">
 
                 <select name="sort" class="form-control" style="flex: 1; min-width: 160px;">
                     <option value="rating_desc" {% if selected_sort == 'rating_desc' %}selected{% endif %}>Highest Rated</option>
@@ -33,14 +26,52 @@
                 <button type="submit" class="btn btn-primary" style="min-width: 120px;">Search 🔍</button>
             </div>
 
-            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; padding-top: 12px; border-top: 1px solid var(--border-glass);">
+            <!-- Cascading Tamil Nadu Location Hierarchy Filters -->
+            <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-glass); border-radius: 10px; padding: 14px;">
+                <div style="font-size: 0.82rem; font-weight: 600; color: var(--primary); margin-bottom: 10px;">
+                    📍 FILTER BY TAMIL NADU ADMINISTRATIVE LOCATION:
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px;">
+                    <!-- State (Default TN) -->
+                    <select id="state_id" name="state_id" class="form-control" style="font-size: 0.85rem;">
+                        <option value="">Loading States...</option>
+                    </select>
+
+                    <!-- District -->
+                    <select id="district_id" name="district_id" class="form-control" style="font-size: 0.85rem;" disabled>
+                        <option value="">-- All Districts (38) --</option>
+                        {% for d in districts %}
+                            <option value="{{ d.id }}" {% if selected_district == d.id %}selected{% endif %}>{{ d.name }}</option>
+                        {% endfor %}
+                    </select>
+
+                    <!-- Taluk -->
+                    <select id="taluk_id" name="taluk_id" class="form-control" style="font-size: 0.85rem;" disabled>
+                        <option value="">-- All Taluks --</option>
+                    </select>
+
+                    <!-- City / Town -->
+                    <select id="city_town_id" class="form-control" style="font-size: 0.85rem;" disabled>
+                        <option value="">-- All Cities / Towns --</option>
+                    </select>
+                    <input type="hidden" id="city_id" name="city_id" value="{{ request.args.get('city_id', '') }}">
+                    <input type="hidden" id="town_id" name="town_id" value="{{ request.args.get('town_id', '') }}">
+
+                    <!-- Village -->
+                    <select id="village_id" name="village_id" class="form-control" style="font-size: 0.85rem;" disabled>
+                        <option value="">-- All Villages --</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; padding-top: 4px;">
                 <div style="display: flex; gap: 16px; align-items: center;">
                     <label style="display: flex; align-items: center; gap: 8px; font-size: 0.88rem; color: var(--text-secondary); cursor: pointer;">
                         <input type="checkbox" name="available" value="1" {% if available_only %}checked{% endif %}>
                         Available for Orders
                     </label>
                 </div>
-                {% if search_q or selected_city or available_only %}
+                {% if search_q or selected_district or selected_taluk or available_only or request.args.get('city_id') or request.args.get('town_id') or request.args.get('village_id') %}
                     <a href="{{ url_for('customer.tailors') }}" style="font-size: 0.85rem; color: var(--danger);">Clear Filters &times;</a>
                 {% endif %}
             </div>
@@ -69,7 +100,7 @@
                                 {% endif %}
                             </div>
                             <div style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 2px;">
-                                📍 {{ tailor.city or 'Local' }} &bull; {{ tailor.experience }} years exp.
+                                📍 {{ tailor.location_display }} &bull; {{ tailor.experience }} yrs exp.
                             </div>
                             <div class="rating-stars" style="margin-top: 6px;">
                                 ★ <span class="rating-score">{{ tailor.rating }}</span>
@@ -79,7 +110,7 @@
                     </div>
 
                     <p style="color: var(--text-secondary); font-size: 0.88rem; line-height: 1.45; margin-bottom: 12px;">
-                        {{ tailor.description[:110] if tailor.description else 'Specializing in custom design, fitting alterations, and traditional bespoke tailoring.' }}...
+                        {{ tailor.description[:120] if tailor.description else 'Specializing in custom design, fitting alterations, and traditional bespoke tailoring.' }}...
                     </p>
 
                     <div class="tailor-tags">
@@ -109,12 +140,41 @@
     {% else %}
         <div class="glass-card" style="text-align: center; padding: 60px 20px;">
             <div style="font-size: 48px; margin-bottom: 16px;">🔍</div>
-            <h3>No Tailors Found Matching Your Criteria</h3>
-            <p style="color: var(--text-secondary); max-width: 450px; margin: 8px auto 24px;">
-                Try adjusting your search terms, changing the location filter, or exploring all available tailors.
+            <h3 style="font-size: 1.3rem; margin-bottom: 8px;">No registered tailors found in this location.</h3>
+            <p style="color: var(--text-secondary); max-width: 480px; margin: 8px auto 24px;">
+                There are currently no active tailors matching your selected administrative location or filters. Try selecting a nearby district or taluk, or reset your search.
             </p>
             <a href="{{ url_for('customer.tailors') }}" class="btn btn-primary">Reset All Filters</a>
         </div>
     {% endif %}
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/location_cascade.js') }}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // Preserve URL params into cascading dropdowns if present
+    const urlParams = new URLSearchParams(window.location.search);
+    const districtId = urlParams.get('district_id');
+    const talukId = urlParams.get('taluk_id');
+
+    if (window.locationCascade && districtId) {
+        setTimeout(async () => {
+            const distSelect = document.getElementById('district_id');
+            if (distSelect) {
+                distSelect.value = districtId;
+                await window.locationCascade.onDistrictChange();
+                if (talukId) {
+                    const talukSelect = document.getElementById('taluk_id');
+                    if (talukSelect) {
+                        talukSelect.value = talukId;
+                        await window.locationCascade.onTalukChange();
+                    }
+                }
+            }
+        }, 300);
+    }
+});
+</script>
 {% endblock %}
