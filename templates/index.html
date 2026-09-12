@@ -1,169 +1,327 @@
 {% extends "base.html" %}
 
-{% block title %}Local Tailor Connect | Bespoke Clothing & Alteration Platform{% endblock %}
+{% block title %}TailorConnect — Tailoring, Reimagined{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/3d-home.css') }}">
+{% endblock %}
 
 {% block content %}
-<div class="container">
-    <!-- Hero Section -->
-    <section class="hero-section" style="padding: 60px 0 80px; text-align: center; position: relative;">
-        <div style="display: inline-flex; align-items: center; gap: 8px; background: rgba(99, 102, 241, 0.12); border: 1px solid rgba(99, 102, 241, 0.3); padding: 6px 16px; border-radius: var(--radius-full); font-size: 0.85rem; font-weight: 600; color: #818cf8; margin-bottom: 24px;">
-            ✨ Modernizing Traditional Tailoring with Smart Tech
+
+<section class="hero-3d" id="hero3D">
+
+    <!-- 3D CANVAS -->
+    <canvas id="tailorCanvas"></canvas>
+
+    <!-- Decorative glow -->
+    <div class="hero-glow hero-glow-one"></div>
+    <div class="hero-glow hero-glow-two"></div>
+
+    <!-- LEFT CONTENT -->
+    <div class="hero-content">
+
+        <div class="hero-badge">
+            <span class="badge-dot"></span>
+            LOCAL TAILORING • REIMAGINED
         </div>
-        <h1 style="font-size: 3.2rem; max-width: 850px; margin: 0 auto 20px; letter-spacing: -1px;">
-            Perfect Fits, Crafted by <span class="gradient-text">Master Local Tailors</span>
+
+        <h1 class="hero-title">
+            Your Perfect Fit
+            <span>Starts Here.</span>
         </h1>
-        <p style="font-size: 1.15rem; color: var(--text-secondary); max-width: 650px; margin: 0 auto 36px;">
-            Eliminate offline chaos. Discover expert neighborhood tailors, save reusable digital measurement profiles, receive clear digital quotes, and track every stitch from fabric to delivery.
+
+        <p class="hero-description">
+            Discover trusted local tailors, save your measurements,
+            customize your garments and track every stitch —
+            all in one beautiful platform.
         </p>
-        <div style="display: flex; justify-content: center; gap: 16px; flex-wrap: wrap;">
-            <a href="{{ url_for('customer.tailors') }}" class="btn btn-primary btn-lg">Explore Local Tailors 🔍</a>
-            <a href="{{ url_for('orders.create_order') }}" class="btn btn-secondary btn-lg">Request Custom Order ✂️</a>
+
+        <div class="hero-actions">
+
+            <button type="button" id="enterTailorButton" class="hero-primary-button">
+
+                <span class="button-text">
+                    Enter TailorConnect
+                </span>
+
+                <span class="button-arrow">
+                    →
+                </span>
+
+            </button>
+
+            <a href="{{ url_for('auth.register') }}" class="hero-secondary-button">
+
+                Create Account
+
+            </a>
+
         </div>
-    </section>
 
-    <!-- Key Features / Value Prop -->
-    <section style="margin-bottom: 80px;">
-        <div style="text-align: center; margin-bottom: 40px;">
-            <h2>Why Choose <span class="gradient-text">Local Tailor Connect</span>?</h2>
-            <p style="color: var(--text-secondary); margin-top: 8px;">Everything you need for seamless bespoke tailoring in one digital platform.</p>
+        <div class="hero-features">
+
+            <div class="hero-feature">
+                <span>✦</span>
+                <p>Find Local Tailors</p>
+            </div>
+
+            <div class="hero-feature">
+                <span>✦</span>
+                <p>Save Measurements</p>
+            </div>
+
+            <div class="hero-feature">
+                <span>✦</span>
+                <p>Track Every Stitch</p>
+            </div>
+
         </div>
 
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 24px;">
-            <div class="glass-card">
-                <div style="font-size: 32px; margin-bottom: 16px;">📍</div>
-                <h3>Intelligent Discovery</h3>
-                <p style="color: var(--text-secondary); margin-top: 8px; font-size: 0.95rem;">
-                    Find verified neighborhood tailors filtered by specialization (ethnic wear, suits, designer blouses), price range, ratings, and location.
-                </p>
-            </div>
+    </div>
 
-            <div class="glass-card">
-                <div style="font-size: 32px; margin-bottom: 16px;">📏</div>
-                <h3>Digital Measurement Vault</h3>
-                <p style="color: var(--text-secondary); margin-top: 8px; font-size: 0.95rem;">
-                    Save and reuse digital measurement profiles across multiple garments. Never visit for repeat physical measurements again.
-                </p>
-            </div>
 
-            <div class="glass-card">
-                <div style="font-size: 32px; margin-bottom: 16px;">🧵</div>
-                <h3>Live Production Pipeline</h3>
-                <p style="color: var(--text-secondary); margin-top: 8px; font-size: 0.95rem;">
-                    Follow progress through structured stages: confirmation, cutting, stitching, fitting alteration, quality check, and ready for pickup.
-                </p>
-            </div>
+    <!-- RIGHT 3D DISPLAY -->
+    <div class="fashion-stage">
 
-            <div class="glass-card">
-                <div style="font-size: 32px; margin-bottom: 16px;">💬</div>
-                <h3>Direct Quotations & Chat</h3>
-                <p style="color: var(--text-secondary); margin-top: 8px; font-size: 0.95rem;">
-                    Share design reference photos, receive upfront digital price estimates, and communicate directly with your artisan master tailor.
-                </p>
-            </div>
-        </div>
-    </section>
+        <div class="stage-ring ring-one"></div>
+        <div class="stage-ring ring-two"></div>
+        <div class="stage-ring ring-three"></div>
 
-    <!-- Featured Master Tailors -->
-    {% if featured_tailors %}
-    <section style="margin-bottom: 80px;">
-        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 32px; flex-wrap: wrap; gap: 16px;">
+        <!-- Floating labels -->
+
+        <div class="floating-label label-measurement">
+            <span class="floating-icon">📏</span>
+
             <div>
-                <h2>Top-Rated <span class="gradient-text">Local Tailors</span></h2>
-                <p style="color: var(--text-secondary); margin-top: 4px;">Experienced artisans ready to take your custom requests.</p>
+                <strong>Smart Measurements</strong>
+                <small>Reusable profiles</small>
             </div>
-            <a href="{{ url_for('customer.tailors') }}" class="btn btn-secondary btn-sm">View All Tailors &rarr;</a>
         </div>
 
-        <div class="tailors-grid">
-            {% for tailor in featured_tailors %}
-            <div class="tailor-card">
-                <div>
-                    <div class="tailor-top">
-                        <div class="tailor-avatar">
-                            {% if tailor.user.profile_pic %}
-                                <img src="{{ url_for('static', filename=tailor.user.profile_pic) }}" alt="{{ tailor.shop_name }}" style="width: 100%; height: 100%; object-fit: cover; border-radius: var(--radius-sm);">
-                            {% else %}
-                                👔
-                            {% endif %}
-                        </div>
-                        <div>
-                            <h3 style="font-size: 1.15rem;">{{ tailor.shop_name }}</h3>
-                            <div style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 2px;">
-                                📍 {{ tailor.city or 'Local Studio' }} &bull; {{ tailor.experience }} yrs exp
-                            </div>
-                            <div class="rating-stars" style="margin-top: 6px;">
-                                ★ <span class="rating-score">{{ tailor.rating }}</span>
-                                <span style="color: var(--text-muted); font-size: 0.8rem;">({{ tailor.total_reviews }} reviews)</span>
-                            </div>
-                        </div>
-                    </div>
 
-                    <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.5; margin-bottom: 12px;">
-                        {{ tailor.description[:110] if tailor.description else 'Dedicated to exceptional craftsmanship, modern bespoke tailoring, and precision alterations.' }}...
-                    </p>
+        <div class="floating-label label-tailor">
+            <span class="floating-icon">🧵</span>
 
-                    <div class="tailor-tags">
-                        {% if tailor.specialization %}
-                            {% for spec in tailor.specialization.split(',')[:3] %}
-                                <span class="tailor-tag">{{ spec.strip() }}</span>
-                            {% endfor %}
-                        {% endif %}
-                    </div>
-                </div>
-
-                <div style="border-top: 1px solid var(--border-glass); padding-top: 16px; margin-top: 8px; display: flex; justify-content: space-between; align-items: center;">
-                    <span style="font-weight: 700; color: var(--text-primary); font-size: 0.95rem;">
-                        {{ tailor.price_range or 'Custom quote' }}
-                    </span>
-                    <a href="{{ url_for('customer.tailor_details', tailor_id=tailor.id) }}" class="btn btn-outline btn-sm">
-                        View Studio &rarr;
-                    </a>
-                </div>
+            <div>
+                <strong>Local Tailors</strong>
+                <small>Find your perfect match</small>
             </div>
-            {% endfor %}
-        </div>
-    </section>
-    {% endif %}
-
-    <!-- Verified Reviews / Testimonials -->
-    {% if recent_reviews %}
-    <section style="margin-bottom: 80px;">
-        <div style="text-align: center; margin-bottom: 36px;">
-            <h2>Customer <span class="gradient-text">Experiences</span></h2>
-            <p style="color: var(--text-secondary); margin-top: 8px;">Real feedback from customers who received tailored garments through the platform.</p>
         </div>
 
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
-            {% for rev in recent_reviews %}
-            <div class="glass-card">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
-                    <div>
-                        <strong style="color: var(--text-primary);">{{ rev.customer.name }}</strong>
-                        <div style="font-size: 0.8rem; color: var(--text-muted);">re: {{ rev.tailor.shop_name }}</div>
-                    </div>
-                    <div class="rating-stars">
-                        {% for i in range(rev.rating) %}★{% endfor %}
-                    </div>
-                </div>
-                <p style="color: var(--text-secondary); font-size: 0.9rem; font-style: italic;">
-                    "{{ rev.comment or 'Excellent craftsmanship and quick turnaround time!' }}"
-                </p>
-                <div style="margin-top: 12px; font-size: 0.75rem; color: var(--text-muted);">
-                    {{ rev.created_at|date }}
-                </div>
+
+        <div class="floating-label label-order">
+            <span class="floating-icon">✂</span>
+
+            <div>
+                <strong>Track Orders</strong>
+                <small>Every stitch, visible</small>
             </div>
-            {% endfor %}
         </div>
-    </section>
-    {% endif %}
 
-    <!-- Join as Tailor Callout Banner -->
-    <section class="glass-card" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(236, 72, 153, 0.1) 100%); border-color: rgba(99, 102, 241, 0.3); text-align: center; padding: 48px 24px; margin-bottom: 40px;">
-        <h2 style="margin-bottom: 12px;">Are You a Professional Tailor or Boutique Owner?</h2>
-        <p style="color: var(--text-secondary); max-width: 600px; margin: 0 auto 24px; font-size: 1.05rem;">
-            Expand your customer base, receive structured digital measurement sheets, manage orders smoothly, and grow your local reputation.
+
+        <!-- Main fashion object -->
+
+        <div class="fashion-object">
+
+            <div class="garment-glow"></div>
+
+            <div class="garment">
+
+                <div class="garment-neck"></div>
+
+                <div class="garment-body">
+
+                    <div class="garment-seam seam-left"></div>
+                    <div class="garment-seam seam-right"></div>
+
+                    <div class="garment-button button-one"></div>
+                    <div class="garment-button button-two"></div>
+                    <div class="garment-button button-three"></div>
+
+                </div>
+
+                <div class="garment-sleeve sleeve-left"></div>
+                <div class="garment-sleeve sleeve-right"></div>
+
+            </div>
+
+
+            <!-- Thread -->
+            <div class="thread thread-one"></div>
+            <div class="thread thread-two"></div>
+            <div class="thread thread-three"></div>
+
+
+            <!-- Needle -->
+            <div class="needle">
+
+                <div class="needle-metal"></div>
+
+                <div class="needle-eye"></div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Center badge -->
+
+        <div class="fashion-badge">
+
+            <span class="badge-star">✦</span>
+
+            <div>
+                <strong>CRAFTED</strong>
+                <small>JUST FOR YOU</small>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- Bottom scroll indicator -->
+
+    <div class="scroll-indicator">
+
+        <span>Explore</span>
+
+        <div class="scroll-line"></div>
+
+    </div>
+
+</section>
+
+
+<!-- ========================================= -->
+<!-- FEATURE PREVIEW -->
+<!-- ========================================= -->
+
+<section class="feature-preview">
+
+    <div class="section-heading">
+
+        <span class="section-eyebrow">
+            THE TAILORCONNECT EXPERIENCE
+        </span>
+
+        <h2>
+            From measurement
+            <span>to masterpiece.</span>
+        </h2>
+
+        <p>
+            Everything you need to create, manage and track
+            your perfect custom garment.
         </p>
-        <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg">Register Your Tailoring Studio &rarr;</a>
-    </section>
-</div>
+
+    </div>
+
+
+    <div class="feature-grid">
+
+        <div class="feature-card">
+
+            <div class="feature-number">
+                01
+            </div>
+
+            <div class="feature-icon">
+                📍
+            </div>
+
+            <h3>
+                Find Your Tailor
+            </h3>
+
+            <p>
+                Discover registered tailors in your
+                district, town, village or locality.
+            </p>
+
+        </div>
+
+
+        <div class="feature-card">
+
+            <div class="feature-number">
+                02
+            </div>
+
+            <div class="feature-icon">
+                📐
+            </div>
+
+            <h3>
+                Save Your Fit
+            </h3>
+
+            <p>
+                Create reusable measurement profiles
+                and keep your perfect fit ready.
+            </p>
+
+        </div>
+
+
+        <div class="feature-card">
+
+            <div class="feature-number">
+                03
+            </div>
+
+            <div class="feature-icon">
+                🧵
+            </div>
+
+            <h3>
+                Track Every Stitch
+            </h3>
+
+            <p>
+                Follow your garment from quotation
+                through stitching to delivery.
+            </p>
+
+        </div>
+
+
+        <div class="feature-card">
+
+            <div class="feature-number">
+                04
+            </div>
+
+            <div class="feature-icon">
+                ✨
+            </div>
+
+            <h3>
+                Wear With Confidence
+            </h3>
+
+            <p>
+                Communicate with your tailor and
+                review your finished experience.
+            </p>
+
+        </div>
+
+    </div>
+
+</section>
+
+{% endblock %}
+
+
+{% block extra_js %}
+
+<!-- Three.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js">
+</script>
+
+<!-- TailorConnect 3D Homepage -->
+<script src="{{ url_for('static', filename='js/3d-home.js') }}">
+</script>
+
 {% endblock %}

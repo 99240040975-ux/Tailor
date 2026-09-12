@@ -1,107 +1,370 @@
-/* ==========================================================================
-   Local Tailor Connect - Responsive Styles & Mobile Optimizations
-   ========================================================================== */
+/* =========================================================
+   TailorConnect - Responsive Design
+   ========================================================= */
 
-/* Mobile hamburger button */
-.nav-toggle {
-    display: none;
-    background: transparent;
-    border: none;
-    color: var(--text-primary);
-    font-size: 24px;
-    cursor: pointer;
+@media (max-width: 1200px) {
+
+    .container,
+    .page-container,
+    .dashboard-container {
+        width: min(94%, 1120px);
+    }
+
+    .hero-content {
+        gap: 40px;
+    }
+
+    .dashboard-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
 }
+
+
+/* =========================================================
+   TABLET
+   ========================================================= */
 
 @media (max-width: 992px) {
-    .chat-container {
+
+    .site-header {
+        padding: 14px 22px;
+    }
+
+    .desktop-nav {
+        display: none !important;
+    }
+
+    .mobile-menu-button {
+        display: flex !important;
+    }
+
+    .hero-content {
         grid-template-columns: 1fr;
-        height: auto;
+        text-align: center;
     }
 
-    .chat-sidebar {
-        max-height: 180px;
-        border-right: none;
-        border-bottom: 1px solid var(--border-glass);
+    .hero-actions {
+        justify-content: center;
     }
 
-    .footer-grid {
+    .hero-visual {
+        min-height: 420px;
+    }
+
+    .two-column,
+    .content-grid,
+    .dashboard-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .sidebar {
+        position: static;
+        width: 100%;
+    }
+
+    .form-grid {
         grid-template-columns: 1fr 1fr;
-        gap: 24px;
-    }
-}
-
-@media (max-width: 768px) {
-    .nav-toggle {
-        display: block;
     }
 
-    .nav-menu {
-        display: none;
-        position: absolute;
-        top: 100%;
-        left: 0;
-        right: 0;
-        background: var(--bg-secondary);
-        border-bottom: 1px solid var(--border-glass);
-        flex-direction: column;
-        padding: 20px;
-        gap: 12px;
-        box-shadow: var(--shadow-lg);
-    }
-
-    .nav-menu.active {
-        display: flex;
-    }
-
-    .nav-actions {
-        display: none;
-    }
-
-    .stages-pipeline {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 16px;
-    }
-
-    .stage-step {
-        flex-direction: row;
-        align-items: center;
-        gap: 16px;
-        text-align: left;
-    }
-
-    .stage-dot {
-        margin-bottom: 0;
-    }
-
-    .meas-metrics-grid {
+    .stats-grid {
         grid-template-columns: repeat(2, 1fr);
     }
 
+    .card-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .table-wrapper {
+        overflow-x: auto;
+    }
+
+    .data-table {
+        min-width: 720px;
+    }
+}
+
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 768px) {
+
+    html {
+        font-size: 15px;
+    }
+
+    body {
+        overflow-x: hidden;
+    }
+
+    .site-header {
+        padding: 12px 16px;
+    }
+
+    .site-logo {
+        font-size: 20px;
+    }
+
+    .mobile-menu-button {
+        width: 42px;
+        height: 42px;
+    }
+
+    .mobile-nav {
+        width: min(320px, 86vw);
+    }
+
+    .main-content {
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+
+    .container,
+    .page-container,
+    .dashboard-container {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .hero-section {
+        padding: 60px 16px;
+    }
+
+    .hero-title {
+        font-size: clamp(2.3rem, 10vw, 4rem);
+        line-height: 1.05;
+    }
+
+    .hero-description {
+        font-size: 15px;
+    }
+
+    .hero-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .hero-actions .btn,
+    .hero-actions .button {
+        width: 100%;
+    }
+
+    .hero-visual {
+        min-height: 340px;
+    }
+
+    .section {
+        padding: 50px 0;
+    }
+
+    .section-title {
+        font-size: 2rem;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .stats-grid,
+    .dashboard-grid,
+    .card-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .stat-card {
+        min-height: 130px;
+    }
+
+    .card {
+        border-radius: 18px;
+    }
+
+    .dashboard-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 18px;
+    }
+
+    .dashboard-header-actions {
+        width: 100%;
+    }
+
+    .dashboard-header-actions .btn {
+        width: 100%;
+    }
+
+    .page-title {
+        font-size: 2rem;
+    }
+
+    .page-subtitle {
+        font-size: 14px;
+    }
+
+    .action-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .order-card {
+        padding: 18px;
+    }
+
+    .order-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .timeline {
+        padding-left: 26px;
+    }
+
+    .timeline-item {
+        padding-left: 18px;
+    }
+
+    .profile-header {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .profile-actions {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .modal {
+        width: calc(100% - 28px);
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
     .footer-grid {
         grid-template-columns: 1fr;
+        gap: 30px;
     }
 
     .footer-bottom {
         flex-direction: column;
-        gap: 12px;
         text-align: center;
-    }
-
-    .auth-card {
-        padding: 24px 20px;
+        gap: 12px;
     }
 }
 
-@media (max-width: 480px) {
-    h1 { font-size: 1.85rem; }
-    h2 { font-size: 1.5rem; }
 
-    .stats-grid {
-        grid-template-columns: 1fr;
+/* =========================================================
+   SMALL MOBILE
+   ========================================================= */
+
+@media (max-width: 480px) {
+
+    html {
+        font-size: 14px;
     }
 
-    .tailors-grid {
-        grid-template-columns: 1fr;
+    .site-header {
+        padding: 10px 13px;
+    }
+
+    .site-logo {
+        font-size: 18px;
+    }
+
+    .mobile-menu-button {
+        width: 40px;
+        height: 40px;
+    }
+
+    .hero-section {
+        padding: 44px 14px;
+    }
+
+    .hero-title {
+        font-size: 2.35rem;
+    }
+
+    .hero-visual {
+        min-height: 280px;
+    }
+
+    .section {
+        padding: 40px 0;
+    }
+
+    .section-title {
+        font-size: 1.75rem;
+    }
+
+    .card {
+        padding: 16px;
+    }
+
+    .stat-card {
+        padding: 16px;
+    }
+
+    .stat-value {
+        font-size: 1.8rem;
+    }
+
+    .btn,
+    .button,
+    button {
+        min-height: 44px;
+    }
+
+    .form-actions {
+        flex-direction: column;
+    }
+
+    .form-actions .btn,
+    .form-actions button {
+        width: 100%;
+    }
+
+    .pagination {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .toast-container {
+        left: 12px;
+        right: 12px;
+        top: 12px;
+    }
+}
+
+
+/* =========================================================
+   ACCESSIBILITY
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+
+/* =========================================================
+   LANDSCAPE MOBILE
+   ========================================================= */
+
+@media (max-height: 500px) and (orientation: landscape) {
+
+    .mobile-nav {
+        overflow-y: auto;
+    }
+
+    .hero-section {
+        padding-top: 30px;
+        padding-bottom: 30px;
     }
 }

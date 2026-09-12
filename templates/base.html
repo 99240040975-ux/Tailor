@@ -1,160 +1,501 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Local Tailor Connect | Modern Tailoring & Alterations Platform{% endblock %}</title>
-    <meta name="description" content="Discover verified local tailors, save reusable digital measurement profiles, customize clothing, and track orders in real time.">
-    
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta
+        name="description"
+        content="TailorConnect — Connect with trusted local tailors and create clothing made for you."
+    >
+
+    <meta
+        name="theme-color"
+        content="#09070d"
+    >
+
+    <title>
+        {% block title %}TailorConnect{% endblock %}
+    </title>
+
+
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- CSS Stylesheets -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/responsive.css') }}">
-    
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:wght@500;600;700&display=swap"
+        rel="stylesheet"
+    >
+
+
+    <!-- Global stylesheet -->
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/style.css') }}"
+    >
+
+
     {% block extra_css %}{% endblock %}
+
 </head>
+
+
 <body>
 
-    <!-- Main Navigation Bar -->
-    <nav class="navbar" id="main-navbar">
-        <div class="container">
-            <a href="{{ url_for('index') }}" class="nav-brand">
-                <div class="brand-icon">✂️</div>
-                <div class="brand-title">Tailor<span>Connect</span></div>
-            </a>
-
-            <button class="nav-toggle" aria-label="Toggle Navigation">☰</button>
-
-            <ul class="nav-menu">
-                <li><a href="{{ url_for('index') }}" class="nav-link">Home</a></li>
-                <li><a href="{{ url_for('customer.tailors') }}" class="nav-link">Find Tailors</a></li>
-                
-                {% if current_user.is_authenticated %}
-                    {% if current_user.is_customer %}
-                        <li><a href="{{ url_for('customer.dashboard') }}" class="nav-link">Dashboard</a></li>
-                        <li><a href="{{ url_for('orders.list_orders') }}" class="nav-link">My Orders</a></li>
-                        <li><a href="{{ url_for('measurements.list_measurements') }}" class="nav-link">Measurements</a></li>
-                        <li>
-                            <a href="{{ url_for('customer.messages') }}" class="nav-link">
-                                Messages
-                                {% if unread_messages_count > 0 %}
-                                    <span class="badge-count">{{ unread_messages_count }}</span>
-                                {% endif %}
-                            </a>
-                        </li>
-                    {% elif current_user.is_tailor %}
-                        <li><a href="{{ url_for('tailor.dashboard') }}" class="nav-link">Studio Dashboard</a></li>
-                        <li><a href="{{ url_for('tailor.orders') }}" class="nav-link">Orders Queue</a></li>
-                        <li><a href="{{ url_for('tailor.quotations') }}" class="nav-link">Quotations</a></li>
-                        <li>
-                            <a href="{{ url_for('customer.messages') }}" class="nav-link">
-                                Messages
-                                {% if unread_messages_count > 0 %}
-                                    <span class="badge-count">{{ unread_messages_count }}</span>
-                                {% endif %}
-                            </a>
-                        </li>
-                    {% elif current_user.is_admin %}
-                        <li><a href="{{ url_for('admin.dashboard') }}" class="nav-link">Admin Console</a></li>
-                        <li><a href="{{ url_for('admin.users') }}" class="nav-link">Users</a></li>
-                        <li><a href="{{ url_for('admin.tailors') }}" class="nav-link">Tailors</a></li>
-                        <li><a href="{{ url_for('admin.orders') }}" class="nav-link">Orders</a></li>
-                    {% endif %}
-                {% endif %}
-            </ul>
-
-            <div class="nav-actions">
-                {% if current_user.is_authenticated %}
-                    <a href="{{ url_for('customer.profile' if current_user.is_customer else ('tailor.profile' if current_user.is_tailor else 'admin.dashboard')) }}" class="btn btn-secondary btn-sm">
-                        👤 {{ current_user.name.split()[0] }}
-                    </a>
-                    <a href="{{ url_for('auth.logout') }}" class="btn btn-danger btn-sm">Logout</a>
-                {% else %}
-                    <a href="{{ url_for('auth.login') }}" class="btn btn-secondary btn-sm">Sign In</a>
-                    <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-sm">Get Started</a>
-                {% endif %}
-            </div>
+    <!-- Page loading layer -->
+    <div
+        class="page-loader"
+        id="pageLoader"
+        aria-hidden="true"
+    >
+        <div class="loader-mark">
+            <span></span>
+            <span></span>
         </div>
-    </nav>
-
-    <!-- Flash Messages Container -->
-    <div class="alerts-container">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category if category != 'error' else 'danger' }}">
-                        <span>{{ message }}</span>
-                        <button type="button" class="close-btn" aria-label="Close Alert">&times;</button>
-                    </div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
     </div>
 
-    <!-- Main Dynamic Content -->
-    <main class="main-content">
+
+    <!-- Navigation -->
+    {% block navbar %}
+
+    <header class="site-header">
+
+        <nav class="site-nav">
+
+            <a
+                href="/"
+                class="site-logo"
+                aria-label="TailorConnect home"
+            >
+
+                <span class="logo-mark">
+                    <span class="logo-thread"></span>
+                    <span class="logo-needle"></span>
+                </span>
+
+                <span class="logo-text">
+                    <strong>TAILOR</strong>
+                    <span>CONNECT</span>
+                </span>
+
+            </a>
+
+
+            <div class="nav-links">
+
+                <a href="/" class="nav-link">
+                    Home
+                </a>
+
+                {% if current_user.is_authenticated %}
+
+                    {% if current_user.role == "customer" %}
+
+                        <a
+                            href="/customer/dashboard"
+                            class="nav-link"
+                        >
+                            Dashboard
+                        </a>
+
+                    {% elif current_user.role == "tailor" %}
+
+                        <a
+                            href="/tailor/dashboard"
+                            class="nav-link"
+                        >
+                            Dashboard
+                        </a>
+
+                    {% elif current_user.role == "admin" %}
+
+                        <a
+                            href="/admin/dashboard"
+                            class="nav-link"
+                        >
+                            Dashboard
+                        </a>
+
+                    {% endif %}
+
+                    <a
+                        href="/logout"
+                        class="nav-button"
+                    >
+                        Logout
+                    </a>
+
+                {% else %}
+
+                    <a
+                        href="{{ url_for('auth.login') }}"
+                        class="nav-link"
+                    >
+                        Login
+                    </a>
+
+                    <a
+                        href="{{ url_for('auth.register') }}"
+                        class="nav-button"
+                    >
+                        Get started
+                    </a>
+
+                {% endif %}
+
+            </div>
+
+
+            <!-- Mobile menu button -->
+            <button
+                class="mobile-menu-button"
+                id="mobileMenuButton"
+                type="button"
+                aria-label="Open navigation"
+                aria-expanded="false"
+            >
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+
+        </nav>
+
+
+        <!-- Mobile navigation -->
+        <div
+            class="mobile-nav"
+            id="mobileNav"
+        >
+
+            <a href="/" class="mobile-nav-link">
+                Home
+            </a>
+
+            {% if current_user.is_authenticated %}
+
+                {% if current_user.role == "customer" %}
+
+                    <a
+                        href="/customer/dashboard"
+                        class="mobile-nav-link"
+                    >
+                        Dashboard
+                    </a>
+
+                {% elif current_user.role == "tailor" %}
+
+                    <a
+                        href="/tailor/dashboard"
+                        class="mobile-nav-link"
+                    >
+                        Dashboard
+                    </a>
+
+                {% elif current_user.role == "admin" %}
+
+                    <a
+                        href="/admin/dashboard"
+                        class="mobile-nav-link"
+                    >
+                        Dashboard
+                    </a>
+
+                {% endif %}
+
+                <a
+                    href="/logout"
+                    class="mobile-nav-button"
+                >
+                    Logout
+                </a>
+
+            {% else %}
+
+                <a
+                    href="{{ url_for('auth.login') }}"
+                    class="mobile-nav-link"
+                >
+                    Login
+                </a>
+
+                <a
+                    href="{{ url_for('auth.register') }}"
+                    class="mobile-nav-button"
+                >
+                    Get started
+                </a>
+
+            {% endif %}
+
+        </div>
+
+    </header>
+
+    {% endblock %}
+
+
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+
+        {% if messages %}
+
+            <div
+                class="global-flashes"
+                id="globalFlashes"
+            >
+
+                {% for category, message in messages %}
+
+                    <div
+                        class="global-flash {{ category }}"
+                    >
+
+                        <span class="flash-symbol">
+                            {% if category == "success" %}
+                                ✓
+                            {% elif category == "danger" or category == "error" %}
+                                !
+                            {% else %}
+                                •
+                            {% endif %}
+                        </span>
+
+                        <span class="flash-text">
+                            {{ message }}
+                        </span>
+
+                        <button
+                            type="button"
+                            class="flash-close"
+                            aria-label="Close message"
+                        >
+                            ×
+                        </button>
+
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        {% endif %}
+
+    {% endwith %}
+
+
+    <!-- Main page content -->
+    <main
+        id="mainContent"
+        class="main-content"
+    >
+
         {% block content %}{% endblock %}
+
     </main>
 
+
     <!-- Footer -->
-    <footer class="footer">
-        <div class="container">
-            <div class="footer-grid">
-                <div>
-                    <a href="{{ url_for('index') }}" class="nav-brand" style="margin-bottom: 12px; display: inline-flex;">
-                        <div class="brand-icon">✂️</div>
-                        <div class="brand-title">Tailor<span>Connect</span></div>
-                    </a>
-                    <p class="footer-desc">
-                        Modernizing custom tailoring, bespoke clothing and alterations through smart matching, digital measurement profiles, and real-time order tracking.
-                    </p>
-                </div>
-                <div class="footer-col">
-                    <h4>For Customers</h4>
-                    <ul class="footer-links">
-                        <li><a href="{{ url_for('customer.tailors') }}">Browse Local Tailors</a></li>
-                        <li><a href="{{ url_for('orders.create_order') }}">Request Custom Outfit</a></li>
-                        <li><a href="{{ url_for('measurements.list_measurements') }}">Digital Measurements</a></li>
-                        <li><a href="{{ url_for('orders.list_orders') }}">Track Order Stages</a></li>
-                    </ul>
-                </div>
-                <div class="footer-col">
-                    <h4>For Tailors</h4>
-                    <ul class="footer-links">
-                        <li><a href="{{ url_for('auth.register') }}">Join as Partner Tailor</a></li>
-                        <li><a href="{{ url_for('tailor.dashboard') }}">Studio Dashboard</a></li>
-                        <li><a href="{{ url_for('tailor.quotations') }}">Digital Quotations</a></li>
-                        <li><a href="{{ url_for('tailor.orders') }}">Production Pipeline</a></li>
-                    </ul>
-                </div>
-                <div class="footer-col">
-                    <h4>Platform</h4>
-                    <ul class="footer-links">
-                        <li><a href="{{ url_for('index') }}">About Platform</a></li>
-                        <li><a href="{{ url_for('customer.tailors') }}">Specializations</a></li>
-                        <li><a href="#">Privacy & Terms</a></li>
-                        <li><a href="#">Customer Support</a></li>
-                    </ul>
-                </div>
+    {% block footer %}
+
+    <footer class="site-footer">
+
+        <div class="footer-inner">
+
+            <div class="footer-brand">
+
+                <a
+                    href="/"
+                    class="site-logo"
+                >
+
+                    <span class="logo-mark">
+                        <span class="logo-thread"></span>
+                        <span class="logo-needle"></span>
+                    </span>
+
+                    <span class="logo-text">
+                        <strong>TAILOR</strong>
+                        <span>CONNECT</span>
+                    </span>
+
+                </a>
+
+                <p>
+                    Local craft. Personal fit.
+                    Clothing made around you.
+                </p>
+
             </div>
 
-            <div class="footer-bottom">
-                <p>&copy; {{ now.year }} Local Tailor Connect. Modernizing traditional craftsmanship.</p>
-                <p>Designed with precision & craftsmanship 🧵</p>
+
+            <div class="footer-links">
+
+                <a href="/">
+                    Home
+                </a>
+
+                {% if current_user.is_authenticated %}
+
+                    <a href="/logout">
+                        Logout
+                    </a>
+
+                {% else %}
+
+                    <a href="{{ url_for('auth.login') }}">
+                        Login
+                    </a>
+
+                    <a href="{{ url_for('auth.register') }}">
+                        Register
+                    </a>
+
+                {% endif %}
+
             </div>
+
         </div>
+
+
+        <div class="footer-bottom">
+
+            <span>
+                © {{ 2026 }} TailorConnect
+            </span>
+
+            <span>
+                Crafted for local fashion
+            </span>
+
+        </div>
+
     </footer>
 
+    {% endblock %}
+
+
     <!-- Global JavaScript -->
-    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/notifications.js') }}"></script>
+    <script
+        src="{{ url_for('static', filename='js/app.js') }}"
+    ></script>
+
+
     {% block extra_js %}{% endblock %}
+
+
+    <!-- Shared UI behaviour -->
+    <script>
+
+        document.addEventListener(
+            "DOMContentLoaded",
+            function () {
+
+                /* Page loader */
+
+                const loader =
+                    document.getElementById("pageLoader");
+
+                if (loader) {
+
+                    setTimeout(function () {
+
+                        loader.classList.add("hidden");
+
+                    }, 350);
+
+                }
+
+
+                /* Mobile navigation */
+
+                const menuButton =
+                    document.getElementById(
+                        "mobileMenuButton"
+                    );
+
+                const mobileNav =
+                    document.getElementById(
+                        "mobileNav"
+                    );
+
+                if (menuButton && mobileNav) {
+
+                    menuButton.addEventListener(
+                        "click",
+                        function () {
+
+                            const open =
+                                mobileNav.classList.toggle(
+                                    "open"
+                                );
+
+                            menuButton.classList.toggle(
+                                "active",
+                                open
+                            );
+
+                            menuButton.setAttribute(
+                                "aria-expanded",
+                                String(open)
+                            );
+
+                        }
+                    );
+
+                }
+
+
+                /* Flash close */
+
+                const flashCloseButtons =
+                    document.querySelectorAll(
+                        ".flash-close"
+                    );
+
+                flashCloseButtons.forEach(
+                    function (button) {
+
+                        button.addEventListener(
+                            "click",
+                            function () {
+
+                                const flash =
+                                    button.closest(
+                                        ".global-flash"
+                                    );
+
+                                if (flash) {
+
+                                    flash.classList.add(
+                                        "closing"
+                                    );
+
+                                    setTimeout(
+                                        function () {
+                                            flash.remove();
+                                        },
+                                        250
+                                    );
+
+                                }
+
+                            }
+                        );
+
+                    }
+                );
+
+            }
+        );
+
+    </script>
 
 </body>
 </html>

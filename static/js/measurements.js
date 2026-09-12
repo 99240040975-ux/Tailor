@@ -1,60 +1,212 @@
-// Measurements Dynamic Profile Preview & Helpers
-document.addEventListener('DOMContentLoaded', function() {
-    const measurementSelect = document.getElementById('measurement_select');
-    const previewContainer = document.getElementById('measurement_preview');
+/* =========================================================
+   TailorConnect - Measurements
+   ========================================================= */
 
-    if (measurementSelect && previewContainer) {
-        measurementSelect.addEventListener('change', function() {
-            const measId = this.value;
-            if (!measId) {
-                previewContainer.innerHTML = '<p class="text-muted" style="color: var(--text-muted);">No measurement profile selected. Select one above to preview dimensions.</p>';
-                return;
-            }
-
-            previewContainer.innerHTML = '<p style="color: var(--text-secondary);">Loading measurement profile...</p>';
-
-            fetch(`/measurements/${measId}/json`)
-                .then(res => res.json())
-                .then(data => {
-                    if (data.error) {
-                        previewContainer.innerHTML = `<p style="color: var(--danger);">${data.error}</p>`;
-                        return;
-                    }
-
-                    const u = data.unit || 'in';
-                    previewContainer.innerHTML = `
-                        <div class="glass-card" style="padding: 16px; margin-top: 12px; background: rgba(255,255,255,0.02);">
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
-                                <strong style="color: var(--accent-primary);">${data.profile_name}</strong>
-                                <span class="badge" style="color: var(--text-secondary);">${data.unit}</span>
-                            </div>
-                            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; font-size: 0.85rem;">
-                                <div><span style="color: var(--text-muted);">Chest:</span> <strong>${data.chest || '-'} ${u}</strong></div>
-                                <div><span style="color: var(--text-muted);">Waist:</span> <strong>${data.waist || '-'} ${u}</strong></div>
-                                <div><span style="color: var(--text-muted);">Hip:</span> <strong>${data.hip || '-'} ${u}</strong></div>
-                                <div><span style="color: var(--text-muted);">Shoulder:</span> <strong>${data.shoulder || '-'} ${u}</strong></div>
-                                <div><span style="color: var(--text-muted);">Sleeve:</span> <strong>${data.sleeve || '-'} ${u}</strong></div>
-                                <div><span style="color: var(--text-muted);">Neck:</span> <strong>${data.neck || '-'} ${u}</strong></div>
-                                <div><span style="color: var(--text-muted);">Inseam:</span> <strong>${data.inseam || '-'} ${u}</strong></div>
-                                <div><span style="color: var(--text-muted);">Height:</span> <strong>${data.height || '-'} ${u}</strong></div>
-                            </div>
-                            ${data.notes ? `<p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 8px;"><em>Notes:</em> ${data.notes}</p>` : ''}
-                        </div>
-                    `;
-                })
-                .catch(err => {
-                    previewContainer.innerHTML = '<p style="color: var(--danger);">Failed to load measurement data.</p>';
-                });
-        });
-    }
-
-    // Unit toggle labels helper in add/edit measurement
-    const unitSelect = document.getElementById('measurement_unit');
-    const unitIndicators = document.querySelectorAll('.unit-indicator');
-    if (unitSelect && unitIndicators.length) {
-        unitSelect.addEventListener('change', function() {
-            const u = this.value === 'cm' ? 'cm' : 'in';
-            unitIndicators.forEach(span => span.textContent = u);
-        });
-    }
+document.addEventListener("DOMContentLoaded", () => {
+    initMeasurementForm();
+    initMeasurementUnit();
+    initMeasurementValidation();
+    initMeasurementDelete();
 });
+
+
+/* =========================================================
+   MEASUREMENT FORM
+   ========================================================= */
+
+function initMeasurementForm() {
+    const form = document.querySelector(
+        "#measurementForm, [data-measurement-form]"
+    );
+
+    if (!form) return;
+
+    form.addEventListener("submit", (event) => {
+        const requiredFields = form.querySelectorAll(
+            "[required]"
+        );
+
+        let valid = true;
+
+        requiredFields.forEach((field) => {
+            if (!field.value.trim()) {
+                field.classList.add("input-error");
+                valid = false;
+            } else {
+                field.classList.remove("input-error");
+            }
+        });
+
+        if (!valid) {
+            event.preventDefault();
+
+            TailorConnect.showToast(
+                "Please complete the required measurement fields.",
+                "error"
+            );
+        }
+    });
+}
+
+
+/* =========================================================
+   UNIT SELECTION
+   ========================================================= */
+
+function initMeasurementUnit() {
+    const unitSelectors = document.querySelectorAll(
+        "#measurementUnit, [data-measurement-unit]"
+    );
+
+    unitSelectors.forEach((selector) => {
+        selector.addEventListener("change", () => {
+            const unit = selector.value;
+
+            document.querySelectorAll(
+                "[data-unit-label]"
+            ).forEach((label) => {
+                label.textContent = unit;
+            });
+        });
+    });
+}
+
+
+/* =========================================================
+   VALIDATION
+   ========================================================= */
+
+function initMeasurementValidation() {
+    const numberInputs = document.querySelectorAll(
+        '.measurement-input, input[data-measurement], input[name="chest"], input[name="waist"], input[name="hip"], input[name="shoulder"], input[name="sleeve"], input[name="neck"], input[name="inseam"], input[name="height"]'
+    );
+
+    numberInputs.forEach((input) => {
+        input.addEventListener("input", () => {
+            const value = Number(input.value);
+
+            if (
+                input.value &&
+                (Number.isNaN(value) || value <= 0)
+            ) {
+                input.classList.add("input-error");
+            } else {
+                input.classList.remove("input-error");
+            }
+        });
+    });
+}
+
+
+/* =========================================================
+   DELETE CONFIRMATION
+   ========================================================= */
+
+function initMeasurementDelete() {
+    const deleteButtons = document.querySelectorAll(
+        "[data-delete-measurement]"
+    );
+
+    deleteButtons.forEach((button) => {
+        button.addEventListener("click", (event) => {
+            const confirmed = window.confirm(
+                "Delete this measurement profile?"
+            );
+
+            if (!confirmed) {
+                event.preventDefault();
+            }
+        });
+    });
+}
+
+
+/* =========================================================
+   GLOBAL MEASUREMENT HELPERS
+   ========================================================= */
+
+window.TailorConnectMeasurements = {
+
+    collect(form) {
+        if (!form) return {};
+
+        const fields = [
+            "profile_name",
+            "chest",
+            "waist",
+            "hip",
+            "shoulder",
+            "sleeve",
+            "neck",
+            "inseam",
+            "height",
+            "unit",
+            "notes"
+        ];
+
+        const data = {};
+
+        fields.forEach((name) => {
+            const field = form.elements[name];
+
+            if (field) {
+                data[name] = field.value;
+            }
+        });
+
+        return data;
+    },
+
+    validate(form) {
+        if (!form) return false;
+
+        let valid = true;
+
+        form.querySelectorAll(
+            "input, select, textarea"
+        ).forEach((field) => {
+            if (
+                field.required &&
+                !field.value.trim()
+            ) {
+                field.classList.add("input-error");
+                valid = false;
+            }
+        });
+
+        return valid;
+    }
+};
+
+
+/* =========================================================
+   MEASUREMENT STYLES
+   ========================================================= */
+
+(function addMeasurementStyles() {
+    if (
+        document.getElementById(
+            "tailorconnect-measurement-styles"
+        )
+    ) {
+        return;
+    }
+
+    const style = document.createElement("style");
+
+    style.id =
+        "tailorconnect-measurement-styles";
+
+    style.textContent = `
+        .input-error {
+            border-color: #ef4444 !important;
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, .10) !important;
+        }
+
+        .input-error:focus {
+            border-color: #ef4444 !important;
+        }
+    `;
+
+    document.head.appendChild(style);
+})();

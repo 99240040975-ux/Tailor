@@ -1,14 +1,265 @@
 {% extends "base.html" %}
 
-{% block title %}Server Error | Local Tailor Connect{% endblock %}
+{% block title %}Something Went Wrong | TailorConnect{% endblock %}
 
 {% block content %}
-<div class="container" style="text-align: center; padding: 80px 20px;">
-    <div style="font-size: 80px; line-height: 1; margin-bottom: 20px;">⚙️</div>
-    <h1 style="font-size: 3rem; margin-bottom: 16px;">500 - Sewing Machine Glitch</h1>
-    <p style="color: var(--text-secondary); max-width: 500px; margin: 0 auto 32px; font-size: 1.1rem;">
-        An unexpected error occurred on our end. Our engineering team has been notified.
-    </p>
-    <a href="{{ url_for('index') }}" class="btn btn-primary btn-lg">Return to Safety &rarr;</a>
-</div>
+<section class="error-page">
+    <div class="error-card">
+
+        <div class="error-visual">
+            <div class="error-number">500</div>
+            <div class="thread-line"></div>
+            <div class="needle-icon">✦</div>
+        </div>
+
+        <span class="error-badge">
+            TailorConnect
+        </span>
+
+        <h1>
+            A little thread<br>
+            <span>came loose.</span>
+        </h1>
+
+        <p>
+            Something went wrong while preparing this page.
+            Please try again, or return to the TailorConnect home page.
+        </p>
+
+        <div class="error-actions">
+            <button
+                type="button"
+                class="btn btn-primary"
+                onclick="window.location.reload()"
+            >
+                Try Again
+            </button>
+
+            <a
+                href="{{ url_for('index') }}"
+                class="btn btn-secondary"
+            >
+                Back to Home
+            </a>
+        </div>
+
+    </div>
+</section>
+
+<style>
+    .error-page {
+        min-height: calc(100vh - 80px);
+        display: grid;
+        place-items: center;
+        padding: 60px 20px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .error-page::before,
+    .error-page::after {
+        content: "";
+        position: absolute;
+        border-radius: 50%;
+        pointer-events: none;
+    }
+
+    .error-page::before {
+        width: 420px;
+        height: 420px;
+        top: -160px;
+        right: -120px;
+        background: rgba(192, 38, 211, .12);
+        filter: blur(2px);
+    }
+
+    .error-page::after {
+        width: 360px;
+        height: 360px;
+        bottom: -160px;
+        left: -120px;
+        background: rgba(249, 115, 22, .10);
+        filter: blur(2px);
+    }
+
+    .error-card {
+        width: min(680px, 100%);
+        padding: 56px 44px;
+        text-align: center;
+        position: relative;
+        z-index: 1;
+        border-radius: 32px;
+        border: 1px solid rgba(255,255,255,.12);
+        background:
+            linear-gradient(
+                145deg,
+                rgba(255,255,255,.08),
+                rgba(255,255,255,.025)
+            );
+        backdrop-filter: blur(24px);
+        box-shadow:
+            0 30px 80px rgba(0,0,0,.20);
+    }
+
+    .error-visual {
+        position: relative;
+        display: inline-block;
+        margin-bottom: 18px;
+    }
+
+    .error-number {
+        font-size: clamp(90px, 18vw, 170px);
+        line-height: .8;
+        font-weight: 900;
+        letter-spacing: -8px;
+        background:
+            linear-gradient(
+                135deg,
+                #c026d3,
+                #f97316,
+                #fb7185
+            );
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+    }
+
+    .thread-line {
+        position: absolute;
+        width: 130px;
+        height: 70px;
+        right: -90px;
+        top: 45%;
+        border-top: 2px solid rgba(192,38,211,.7);
+        border-radius: 50%;
+        transform: rotate(-15deg);
+    }
+
+    .needle-icon {
+        position: absolute;
+        right: -100px;
+        top: 30%;
+        color: #f97316;
+        font-size: 28px;
+        transform: rotate(35deg);
+    }
+
+    .error-badge {
+        display: inline-flex;
+        padding: 7px 14px;
+        border-radius: 999px;
+        background: rgba(192,38,211,.10);
+        border: 1px solid rgba(192,38,211,.20);
+        color: #c026d3;
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+    }
+
+    .error-card h1 {
+        margin: 20px 0 14px;
+        font-size: clamp(30px, 5vw, 48px);
+        line-height: 1.08;
+        letter-spacing: -.04em;
+    }
+
+    .error-card h1 span {
+        background:
+            linear-gradient(
+                90deg,
+                #c026d3,
+                #f97316
+            );
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+    }
+
+    .error-card p {
+        max-width: 500px;
+        margin: 0 auto;
+        color: #8b7c8e;
+        line-height: 1.7;
+        font-size: 15px;
+    }
+
+    .error-actions {
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-top: 30px;
+    }
+
+    .error-actions .btn {
+        min-width: 150px;
+        min-height: 48px;
+        padding: 12px 22px;
+        border-radius: 14px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        font: inherit;
+        font-weight: 700;
+        cursor: pointer;
+        transition:
+            transform .2s ease,
+            box-shadow .2s ease;
+    }
+
+    .error-actions .btn:hover {
+        transform: translateY(-2px);
+    }
+
+    .error-actions .btn-primary {
+        border: 0;
+        color: #fff;
+        background:
+            linear-gradient(
+                135deg,
+                #c026d3,
+                #f97316
+            );
+        box-shadow:
+            0 12px 30px rgba(192,38,211,.20);
+    }
+
+    .error-actions .btn-secondary {
+        color: inherit;
+        background: rgba(255,255,255,.06);
+        border: 1px solid rgba(255,255,255,.12);
+    }
+
+    @media (max-width: 600px) {
+        .error-card {
+            padding: 42px 24px;
+            border-radius: 24px;
+        }
+
+        .thread-line,
+        .needle-icon {
+            display: none;
+        }
+
+        .error-number {
+            letter-spacing: -5px;
+        }
+
+        .error-actions {
+            flex-direction: column;
+        }
+
+        .error-actions .btn {
+            width: 100%;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .error-actions .btn {
+            transition: none;
+        }
+    }
+</style>
 {% endblock %}

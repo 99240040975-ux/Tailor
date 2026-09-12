@@ -1,151 +1,506 @@
 {% extends "base.html" %}
 
-{% block title %}Create an Account | Local Tailor Connect{% endblock %}
+{% block title %}Create Account | TailorConnect{% endblock %}
 
-{% block content %}
-<div class="auth-wrapper">
-    <div class="auth-card">
-        <div class="auth-header">
-            <h2>Join TailorConnect</h2>
-            <p>Connect with local artisans or offer your bespoke tailoring craftsmanship.</p>
-        </div>
-
-        <!-- Role Selector Tabs -->
-        <div class="role-tabs">
-            <div class="role-tab active" data-role="customer">
-                👤 I am a Customer
-            </div>
-            <div class="role-tab" data-role="tailor">
-                🧵 I am a Tailor
-            </div>
-        </div>
-
-        <form method="POST" action="{{ url_for('auth.register') }}" id="registerForm">
-            <input type="hidden" name="role" id="roleInput" value="customer">
-
-            <div class="form-group">
-                <label class="form-label" for="name">Full Name</label>
-                <input type="text" id="name" name="name" class="form-control" required placeholder="Arjun Kumar" value="{{ name or '' }}">
-            </div>
-
-            <div class="form-group">
-                <label class="form-label" for="email">Email Address</label>
-                <input type="email" id="email" name="email" class="form-control" required placeholder="arjun@example.com" value="{{ email or '' }}">
-            </div>
-
-            <div class="form-group">
-                <label class="form-label" for="phone">Phone Number</label>
-                <input type="tel" id="phone" name="phone" class="form-control" placeholder="+91 98765 43210" value="{{ phone or '' }}">
-            </div>
-
-            <!-- Tailor Specific Fields (Revealed when tailor tab clicked) -->
-            <div class="tailor-only-fields">
-                <div class="form-group">
-                    <label class="form-label" for="shop_name">Shop / Studio Name <span style="color:red;">*</span></label>
-                    <input type="text" id="shop_name" name="shop_name" class="form-control" placeholder="e.g. Royal Bespoke Tailors" value="{{ shop_name or '' }}">
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label" for="specialization">Specializations</label>
-                    <input type="text" id="specialization" name="specialization" class="form-control" placeholder="e.g. Suits, Sherwanis, Blouses, Bridal Lehengas" value="{{ specialization or '' }}">
-                </div>
-
-                <div style="background: rgba(255, 255, 255, 0.04); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px; margin-bottom: 20px;">
-                    <div style="font-size: 0.88rem; font-weight: 600; color: var(--primary); margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
-                        <span>🏛️</span> Official Tamil Nadu Administrative Location
-                    </div>
-
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                        <div class="form-group" style="margin-bottom: 12px;">
-                            <label class="form-label" for="state_id">State</label>
-                            <select id="state_id" name="state_id" class="form-control">
-                                <option value="">Loading States...</option>
-                            </select>
-                        </div>
-
-                        <div class="form-group" style="margin-bottom: 12px;">
-                            <label class="form-label" for="district_id">District</label>
-                            <select id="district_id" name="district_id" class="form-control" disabled>
-                                <option value="">-- Select District --</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                        <div class="form-group" style="margin-bottom: 12px;">
-                            <label class="form-label" for="taluk_id">Taluk / Sub-district</label>
-                            <select id="taluk_id" name="taluk_id" class="form-control" disabled>
-                                <option value="">-- Select Taluk --</option>
-                            </select>
-                        </div>
-
-                        <div class="form-group" style="margin-bottom: 12px;">
-                            <label class="form-label" for="city_town_id">City / Town</label>
-                            <select id="city_town_id" class="form-control" disabled>
-                                <option value="">-- Select City / Town --</option>
-                            </select>
-                            <input type="hidden" id="city_id" name="city_id">
-                            <input type="hidden" id="town_id" name="town_id">
-                        </div>
-                    </div>
-
-                    <div class="form-group" style="margin-bottom: 12px;">
-                        <label class="form-label" for="village_id">Revenue Village / Local Area</label>
-                        <select id="village_id" name="village_id" class="form-control" disabled>
-                            <option value="">-- Select Village / Area --</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group" style="margin-bottom: 12px;">
-                        <label class="form-label" for="address">Street Address / Landmark</label>
-                        <textarea id="address" name="address" class="form-control" rows="2" placeholder="e.g. 42 Bazaar Road, Near Bus Stand, Landmark...">{{ address or '' }}</textarea>
-                    </div>
-
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                        <div class="form-group" style="margin-bottom: 8px;">
-                            <label class="form-label" for="latitude">Latitude</label>
-                            <input type="text" id="latitude" name="latitude" class="form-control" placeholder="e.g. 13.0827" value="{{ latitude or '' }}">
-                        </div>
-                        <div class="form-group" style="margin-bottom: 8px;">
-                            <label class="form-label" for="longitude">Longitude</label>
-                            <input type="text" id="longitude" name="longitude" class="form-control" placeholder="e.g. 80.2707" value="{{ longitude or '' }}">
-                        </div>
-                    </div>
-
-                    <div style="margin-top: 6px; display: flex; align-items: center; justify-content: space-between;">
-                        <button type="button" id="detectLocationBtn" class="btn btn-outline" style="font-size: 0.8rem; padding: 6px 12px;">
-                            📍 Detect Current Location
-                        </button>
-                        <span id="geoStatus" style="font-size: 0.78rem; color: var(--text-muted);"></span>
-                    </div>
-                </div>
-
-                <input type="hidden" id="city" name="city" value="">
-            </div>
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-                <div class="form-group">
-                    <label class="form-label" for="password">Password</label>
-                    <input type="password" id="password" name="password" class="form-control" required minlength="6" placeholder="Min 6 chars">
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label" for="confirm_password">Confirm Password</label>
-                    <input type="password" id="confirm_password" name="confirm_password" class="form-control" required minlength="6" placeholder="Repeat password">
-                </div>
-            </div>
-
-            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 10px;">Create My Account &rarr;</button>
-        </form>
-
-        <div class="auth-footer">
-            Already have an account? <a href="{{ url_for('auth.login') }}">Sign In</a>
-        </div>
-    </div>
-</div>
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
 {% endblock %}
 
+{% block content %}
+
+<div class="auth-page">
+
+    <div class="auth-glow auth-glow-one"></div>
+    <div class="auth-glow auth-glow-two"></div>
+    <div class="auth-grid"></div>
+
+    <div class="auth-shell">
+
+        <!-- LEFT VISUAL -->
+        <section class="auth-visual">
+
+            <div class="visual-top">
+                <div class="brand-mark">
+                    <span class="brand-thread"></span>
+                    <span class="brand-needle"></span>
+                </div>
+
+                <div class="brand-name">
+                    <strong>TAILOR</strong><span>CONNECT</span>
+                </div>
+            </div>
+
+            <div class="fashion-scene">
+
+                <div class="scene-orbit orbit-one"></div>
+                <div class="scene-orbit orbit-two"></div>
+                <div class="scene-orbit orbit-three"></div>
+
+                <div class="fabric fabric-one"></div>
+                <div class="fabric fabric-two"></div>
+                <div class="fabric fabric-three"></div>
+
+                <div class="needle">
+                    <div class="needle-head"></div>
+                    <div class="needle-body"></div>
+                    <div class="needle-eye"></div>
+                </div>
+
+                <div class="thread thread-one"></div>
+                <div class="thread thread-two"></div>
+
+                <div class="floating-card card-one">
+                    <span class="floating-icon">✦</span>
+                    <div>
+                        <strong>Personal Fit</strong>
+                        <small>Your measurements</small>
+                    </div>
+                </div>
+
+                <div class="floating-card card-two">
+                    <span class="floating-icon">⌁</span>
+                    <div>
+                        <strong>Local Craft</strong>
+                        <small>Made nearby</small>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="visual-copy">
+
+                <span class="visual-eyebrow">
+                    START YOUR STYLE JOURNEY
+                </span>
+
+                <h1>
+                    Made
+                    <br>
+                    <span>your way.</span>
+                </h1>
+
+                <p>
+                    Create one account to discover local tailors,
+                    save your fit, manage orders and bring your
+                    clothing ideas to life.
+                </p>
+
+            </div>
+
+            <div class="visual-footer">
+                <span>DISCOVER</span>
+                <i></i>
+                <span>CUSTOMIZE</span>
+                <i></i>
+                <span>CREATE</span>
+            </div>
+
+        </section>
+
+
+        <!-- RIGHT REGISTER PANEL -->
+        <section class="auth-card-wrapper">
+
+            <div class="auth-card">
+
+                <div class="mobile-brand">
+
+                    <div class="brand-mark">
+                        <span class="brand-thread"></span>
+                        <span class="brand-needle"></span>
+                    </div>
+
+                    <div class="brand-name">
+                        <strong>TAILOR</strong><span>CONNECT</span>
+                    </div>
+
+                </div>
+
+
+                <div class="auth-heading">
+
+                    <span class="auth-eyebrow">
+                        CREATE YOUR ACCOUNT
+                    </span>
+
+                    <h2>
+                        Your style,
+                        <span>your space.</span>
+                    </h2>
+
+                    <p>
+                        Join TailorConnect and start creating
+                        clothing that feels uniquely yours.
+                    </p>
+
+                </div>
+
+
+                {% with messages = get_flashed_messages(with_categories=true) %}
+
+                    {% if messages %}
+
+                        <div class="auth-messages">
+
+                            {% for category, message in messages %}
+
+                                <div class="auth-message {{ category }}">
+                                    <span class="message-icon">!</span>
+                                    <span>{{ message }}</span>
+                                </div>
+
+                            {% endfor %}
+
+                        </div>
+
+                    {% endif %}
+
+                {% endwith %}
+
+
+                <form
+                    method="POST"
+                    action="{{ url_for('auth.register') }}"
+                    class="auth-form"
+                    id="registerForm"
+                >
+
+                    <!-- NAME -->
+                    <div class="field-group">
+
+                        <label for="name">
+                            Full name
+                        </label>
+
+                        <div class="input-shell">
+
+                            <span class="input-icon">✦</span>
+
+                            <input
+                                type="text"
+                                id="name"
+                                name="name"
+                                placeholder="Enter your name"
+                                autocomplete="name"
+                                required
+                            >
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- EMAIL -->
+                    <div class="field-group">
+
+                        <label for="email">
+                            Email address
+                        </label>
+
+                        <div class="input-shell">
+
+                            <span class="input-icon">@</span>
+
+                            <input
+                                type="email"
+                                id="email"
+                                name="email"
+                                placeholder="you@example.com"
+                                autocomplete="email"
+                                required
+                            >
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- PASSWORD -->
+                    <div class="field-group">
+
+                        <label for="password">
+                            Password
+                        </label>
+
+                        <div class="input-shell">
+
+                            <span class="input-icon password-icon">
+                                •••
+                            </span>
+
+                            <input
+                                type="password"
+                                id="password"
+                                name="password"
+                                placeholder="Create a password"
+                                autocomplete="new-password"
+                                minlength="6"
+                                required
+                            >
+
+                            <button
+                                type="button"
+                                class="password-toggle"
+                                id="passwordToggle"
+                                aria-label="Show password"
+                            >
+                                <span class="eye-open">◉</span>
+                                <span class="eye-closed">◌</span>
+                            </button>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- ROLE -->
+                    <div class="field-group">
+
+                        <label for="role">
+                            I want to
+                        </label>
+
+                        <div class="input-shell">
+
+                            <span class="input-icon">◇</span>
+
+                            <select
+                                id="role"
+                                name="role"
+                                required
+                                style="
+                                    width:100%;
+                                    height:100%;
+                                    border:0;
+                                    outline:0;
+                                    background:transparent;
+                                    color:#fff;
+                                    font-family:inherit;
+                                    font-size:12px;
+                                    padding-right:14px;
+                                    cursor:pointer;
+                                "
+                            >
+                                <option
+                                    value="customer"
+                                    style="background:#17111d;"
+                                >
+                                    Find a tailor for my clothing
+                                </option>
+
+                                <option
+                                    value="tailor"
+                                    style="background:#17111d;"
+                                >
+                                    Offer tailoring services
+                                </option>
+
+                            </select>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- TERMS -->
+                    <label class="remember-row">
+
+                        <input
+                            type="checkbox"
+                            name="terms"
+                            value="1"
+                            required
+                        >
+
+                        <span class="custom-checkbox"></span>
+
+                        <span>
+                            I agree to the platform terms
+                        </span>
+
+                    </label>
+
+
+                    <!-- SUBMIT -->
+                    <button
+                        type="submit"
+                        class="auth-submit"
+                        id="registerButton"
+                    >
+
+                        <span class="submit-text">
+                            Create my account
+                        </span>
+
+                        <span class="submit-arrow">
+                            →
+                        </span>
+
+                        <span class="submit-loader"></span>
+
+                    </button>
+
+                </form>
+
+
+                <div class="auth-divider">
+                    <span>ALREADY A MEMBER?</span>
+                </div>
+
+
+                <a
+                    href="{{ url_for('auth.login') }}"
+                    class="register-button"
+                >
+
+                    <span>
+                        Sign in to TailorConnect
+                    </span>
+
+                    <span class="register-arrow">
+                        ↗
+                    </span>
+
+                </a>
+
+
+                <div class="auth-note">
+
+                    <span class="note-lock">
+                        ◆
+                    </span>
+
+                    <span>
+                        Your personal information stays private.
+                    </span>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </div>
+
+</div>
+
+{% endblock %}
+
+
 {% block extra_js %}
-<script src="{{ url_for('static', filename='js/location_cascade.js') }}"></script>
-<script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const passwordInput =
+        document.getElementById("password");
+
+    const passwordToggle =
+        document.getElementById("passwordToggle");
+
+    if (passwordInput && passwordToggle) {
+
+        passwordToggle.addEventListener("click", function () {
+
+            const isPassword =
+                passwordInput.type === "password";
+
+            passwordInput.type =
+                isPassword ? "text" : "password";
+
+            passwordToggle.setAttribute(
+                "aria-label",
+                isPassword
+                    ? "Hide password"
+                    : "Show password"
+            );
+
+            passwordToggle.classList.toggle(
+                "visible",
+                isPassword
+            );
+
+        });
+
+    }
+
+
+    const registerForm =
+        document.getElementById("registerForm");
+
+    const registerButton =
+        document.getElementById("registerButton");
+
+    if (registerForm && registerButton) {
+
+        registerForm.addEventListener("submit", function () {
+
+            registerButton.classList.add("loading");
+
+            const submitText =
+                registerButton.querySelector(".submit-text");
+
+            if (submitText) {
+                submitText.textContent =
+                    "Creating your account...";
+            }
+
+        });
+
+    }
+
+
+    const inputs =
+        document.querySelectorAll(
+            ".input-shell input, .input-shell select"
+        );
+
+    inputs.forEach(function (input) {
+
+        input.addEventListener("focus", function () {
+
+            const shell =
+                input.closest(".input-shell");
+
+            if (shell) {
+                shell.classList.add("focused");
+            }
+
+        });
+
+        input.addEventListener("blur", function () {
+
+            const shell =
+                input.closest(".input-shell");
+
+            if (shell) {
+                shell.classList.remove("focused");
+            }
+
+        });
+
+    });
+
+
+    const card =
+        document.querySelector(".auth-card");
+
+    const visual =
+        document.querySelector(".auth-visual");
+
+    if (card) {
+        setTimeout(function () {
+            card.classList.add("auth-ready");
+        }, 80);
+    }
+
+    if (visual) {
+        setTimeout(function () {
+            visual.classList.add("visual-ready");
+        }, 120);
+    }
+
+});
+</script>
+
 {% endblock %}
