@@ -164,7 +164,7 @@
     scrollbar-width: thin;
 }
 
-.district-pill {
+.district-pill, .specialty-pill {
     background: #f8f4ff;
     border: 1px solid rgba(129, 140, 248, 0.25);
     border-radius: 100px;
@@ -177,7 +177,8 @@
     transition: all 0.2s ease;
 }
 
-.district-pill:hover, .district-pill.active {
+.district-pill:hover, .district-pill.active,
+.specialty-pill:hover, .specialty-pill.active {
     background: linear-gradient(135deg, #f472b6, #818cf8);
     color: #ffffff;
     border-color: transparent;
@@ -333,6 +334,28 @@
             </button>
         </div>
 
+        <!-- Quick Tailor Specialization Filter Pills -->
+        <div class="district-quick-bar" id="specialtyPillBar" style="padding-top: 0; margin-bottom: 12px;">
+            <button type="button" class="specialty-pill active" data-specialty="all">
+                ✨ All Specialists
+            </button>
+            <button type="button" class="specialty-pill" data-specialty="silk">
+                👗 Silk Saree Blouses
+            </button>
+            <button type="button" class="specialty-pill" data-specialty="suit">
+                👔 Bespoke Suits & Tuxedos
+            </button>
+            <button type="button" class="specialty-pill" data-specialty="lehenga">
+                🥻 Bridal Lehengas & Aari Work
+            </button>
+            <button type="button" class="specialty-pill" data-specialty="kurta">
+                🧵 Kurtas & Ethnic Wear
+            </button>
+            <button type="button" class="specialty-pill" data-specialty="alteration">
+                ✂️ Alterations & Fitting
+            </button>
+        </div>
+
         <!-- The Leaflet Map Canvas -->
         <div id="tnTailorMap"></div>
     </div>
@@ -386,7 +409,7 @@
     {% if tailors %}
         <div class="tailors-grid" id="tailorsCardsGrid">
             {% for tailor in tailors %}
-            <div class="tailor-card" id="tailor-card-{{ tailor.id }}" data-tailor-id="{{ tailor.id }}" data-city="{{ tailor.city }}" style="border-radius: 20px; border: 1.5px solid rgba(129,140,248,0.2); transition: all 0.25s ease;">
+            <div class="tailor-card" id="tailor-card-{{ tailor.id }}" data-tailor-id="{{ tailor.id }}" data-city="{{ tailor.city }}" data-specialization="{{ tailor.specialization|lower if tailor.specialization else '' }}" style="border-radius: 20px; border: 1.5px solid rgba(129,140,248,0.2); transition: all 0.25s ease;">
                 <div>
                     <div class="tailor-top">
                         <div class="tailor-avatar" style="font-size: 1.6rem; display: grid; place-items: center; background: rgba(129,140,248,0.12); border-radius: 14px;">
@@ -511,8 +534,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Markers lookup
     const markers = {};
+    const markersGroup = L.layerGroup().addTo(map);
     let userMarker = null;
     let userCoords = null;
+    let activeDistrict = 'all';
+    let activeSpecialty = 'all';
 
     // Helper: Haversine distance in km
     function calculateDistance(lat1, lon1, lat2, lon2) {
@@ -564,7 +590,7 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         `;
 
-        const marker = L.marker([t.lat, t.lng], { icon: customIcon }).addTo(map);
+        const marker = L.marker([t.lat, t.lng], { icon: customIcon });
         marker.bindPopup(popupHtml);
 
         // Click marker: highlight card
@@ -573,6 +599,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         markers[t.id] = marker;
+        markersGroup.addLayer(marker);
     });
 
     // 4. Highlight tailor card & scroll smoothly
@@ -591,6 +618,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const id = btn.getAttribute('data-tailor-id');
             const marker = markers[id];
             if (marker) {
+                if (!markersGroup.hasLayer(marker)) {
+                    markersGroup.addLayer(marker);
+                }
                 map.setView(marker.getLatLng(), 14, { animate: true });
                 marker.openPopup();
                 highlightTailorCard(id);
@@ -600,34 +630,69 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    // Master filter function for Map & Grid
+    function applyFilters() {
+        markersGroup.clearLayers();
+        let visibleCount = 0;
+
+        tailors.forEach(t => {
+            const cityMatch = (activeDistrict === 'all') || (t.city && t.city.toLowerCase().includes(activeDistrict.toLowerCase()));
+            const specMatch = (activeSpecialty === 'all') || (t.specialization && t.specialization.toLowerCase().includes(activeSpecialty.toLowerCase()));
+            const isMatch = cityMatch && specMatch;
+
+            // Card visibility
+            const card = document.getElementById(`tailor-card-${t.id}`);
+            if (card) {
+                card.style.display = isMatch ? 'flex' : 'none';
+            }
+
+            // Map marker visibility
+            if (isMatch && markers[t.id]) {
+                markersGroup.addLayer(markers[t.id]);
+                visibleCount++;
+            }
+        });
+
+        const statusEl = document.getElementById('mapStatusSubtitle');
+        if (statusEl) {
+            let msg = `Showing ${visibleCount} active studio(s)`;
+            if (activeDistrict !== 'all') msg += ` in ${activeDistrict}`;
+            if (activeSpecialty !== 'all') {
+                const specName = activeSpecialty.charAt(0).toUpperCase() + activeSpecialty.slice(1);
+                msg += ` specializing in ${specName}`;
+            }
+            statusEl.textContent = msg + '.';
+        }
+    }
+
     // 6. District Quick Filter Pills
-    const pills = document.querySelectorAll('.district-pill');
-    pills.forEach(pill => {
+    const districtPills = document.querySelectorAll('#districtPillBar .district-pill');
+    districtPills.forEach(pill => {
         pill.addEventListener('click', () => {
-            pills.forEach(p => p.classList.remove('active'));
+            districtPills.forEach(p => p.classList.remove('active'));
             pill.classList.add('active');
 
-            const dist = pill.getAttribute('data-district');
+            activeDistrict = pill.getAttribute('data-district') || 'all';
             const lat = parseFloat(pill.getAttribute('data-lat'));
             const lng = parseFloat(pill.getAttribute('data-lng'));
             const zoom = parseInt(pill.getAttribute('data-zoom'));
 
-            map.setView([lat, lng], zoom, { animate: true });
+            if (!isNaN(lat) && !isNaN(lng)) {
+                map.setView([lat, lng], zoom, { animate: true });
+            }
+            applyFilters();
+        });
+    });
 
-            // Filter cards in grid
-            const cards = document.querySelectorAll('.tailor-card');
-            cards.forEach(card => {
-                const cardCity = card.getAttribute('data-city');
-                if (dist === 'all' || (cardCity && cardCity.toLowerCase().includes(dist.toLowerCase()))) {
-                    card.style.display = 'flex';
-                } else {
-                    card.style.display = 'none';
-                }
-            });
+    // 6b. Specialty Filter Pills
+    const specialtyPills = document.querySelectorAll('#specialtyPillBar .specialty-pill');
+    specialtyPills.forEach(pill => {
+        pill.addEventListener('click', () => {
+            specialtyPills.forEach(p => p.classList.remove('active'));
+            pill.classList.add('active');
 
-            document.getElementById('mapStatusSubtitle').textContent = dist === 'all'
-                ? `Showing ${tailors.length} active studios across Tamil Nadu.`
-                : `Zoomed to ${dist} & showing matching local studios.`;
+            activeSpecialty = pill.getAttribute('data-specialty') || 'all';
+            applyFilters();
         });
     });
 

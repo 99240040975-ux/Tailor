@@ -256,11 +256,6 @@
                     taking away the human relationship between customer
                     and tailor.
                 </p>
-                {% if not current_user.is_authenticated %}
-                <a href="{{ url_for('auth.register') }}" class="btn-primary mt-btn">
-                    Create your account <span class="btn-arrow">→</span>
-                </a>
-                {% endif %}
             </div>
 
             <div class="feat-grid">
@@ -296,9 +291,9 @@
 
 
 <!-- =========================================================
-     FEATURED TAILORS
+     FEATURED TAILORS (ONLY VISIBLE WHEN LOGGED IN)
 ========================================================= -->
-{% if featured_tailors %}
+{% if current_user.is_authenticated and featured_tailors %}
 <section class="section-light">
     <div class="section-inner">
 
@@ -307,7 +302,7 @@
                 <p class="eyebrow">Featured professionals</p>
                 <h2 class="section-title">Meet local tailors</h2>
             </div>
-            {% if current_user.is_authenticated and current_user.role == "customer" %}
+            {% if current_user.role == "customer" %}
             <a href="{{ url_for('customer.tailors') }}" class="view-all-link">
                 View all →
             </a>
@@ -391,38 +386,6 @@
     </div>
 </section>
 {% endif %}
-
-
-<!-- =========================================================
-     FINAL CTA
-========================================================= -->
-<section class="section-cta">
-    <div class="section-inner text-center">
-
-        <div class="cta-box">
-            <div class="cta-blob" aria-hidden="true"></div>
-            <p class="eyebrow">Ready to start?</p>
-            <h2 class="cta-title">
-                Your perfect fit<br>starts locally.
-            </h2>
-            <p class="cta-sub">
-                Bring the convenience of digital tools to the craft,
-                care, and personal touch of local tailoring.
-            </p>
-            {% if not current_user.is_authenticated %}
-            <div class="cta-actions">
-                <a href="{{ url_for('auth.register') }}" class="btn-primary btn-lg">
-                    Join TailorConnect
-                </a>
-                <a href="{{ url_for('auth.login') }}" class="btn-outline-dark btn-lg">
-                    Sign in
-                </a>
-            </div>
-            {% endif %}
-        </div>
-
-    </div>
-</section>
 
 {% endblock %}
 

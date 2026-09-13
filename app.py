@@ -330,9 +330,11 @@ with app.app_context():
     try:
         db.create_all()
         ensure_demo_accounts()
+        from scripts.seed_tn_tailors import seed_tn_tailors
+        seed_tn_tailors()
 
         app.logger.info(
-            "Database tables checked and demo accounts verified successfully."
+            "Database tables checked, demo accounts verified, and Tamil Nadu tailors seeded successfully."
         )
 
     except Exception as exc:

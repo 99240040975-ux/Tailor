@@ -28,9 +28,9 @@ def run_tests():
     assert "auth-3d-page" in r3.text
     assert "fashion-object" in r3.text
     assert "chip-measurements" in r3.text
-    assert "demoCustomerBtn" in r3.text
-    assert "demoTailorBtn" in r3.text
-    print("PASS 3: 3D Floating Login page loaded with 3D fashion stage and demo buttons.")
+    # Verify Quick Demo Login was removed as requested
+    assert "demoCustomerBtn" not in r3.text, "Quick demo login should be removed"
+    print("PASS 3: 3D Floating Login page loaded cleanly without quick demo buttons.")
 
     # 4. Login as Customer (Arjun)
     r4 = s.post(f"{BASE_URL}/auth/login", data={
@@ -51,11 +51,12 @@ def run_tests():
     assert "design-switch-btn" in r5.text
     print("PASS 5: Customer dashboard loaded with 4 switchable 3D designs (Suit, Machine, Shears, Fabric).")
 
-    # 6. Customer Tailors Discovery with Live Tamil Nadu Map
+    # 6. Customer Tailors Discovery with Live Tamil Nadu Map & Specialty Filters
     r6 = s.get(f"{BASE_URL}/customer/tailors")
     assert r6.status_code == 200
     assert "tnTailorMap" in r6.text
     assert "districtPillBar" in r6.text
+    assert "specialtyPillBar" in r6.text
     assert "tailorsData" in r6.text
     assert "locateMeBtn" in r6.text
     assert "Select Tailor ✂️" in r6.text
@@ -71,7 +72,22 @@ def run_tests():
         assert 76.0 <= t["lng"] <= 81.0, f"Longitude {t['lng']} not within Tamil Nadu"
     print(f"PASS 6: Live Tamil Nadu map loaded with {len(tailors)} tailors verified across TN coordinates.")
 
-    print("\nALL 6 END-TO-END SYSTEM TESTS PASSED SUCCESSFULLY!")
+    # 7. Request Custom Order Page (Styled, no raw HTML, 3D promise card)
+    r7 = s.get(f"{BASE_URL}/orders/create")
+    assert r7.status_code == 200
+    assert "create-order-layout" in r7.text
+    assert "order-clay-summary" in r7.text
+    assert "tailor_id" in r7.text
+    print("PASS 7: Custom tailoring order request page loaded with 3D styling and promise card.")
+
+    # 8. Digital Measurement Vault Page
+    r8 = s.get(f"{BASE_URL}/measurements")
+    assert r8.status_code == 200
+    assert "Digital Measurement Vault" in r8.text
+    assert "Create New Profile" in r8.text
+    print("PASS 8: Customer measurement section loaded with digital vault profiles.")
+
+    print("\nALL 8 END-TO-END SYSTEM TESTS PASSED SUCCESSFULLY!")
 
 if __name__ == "__main__":
     run_tests()

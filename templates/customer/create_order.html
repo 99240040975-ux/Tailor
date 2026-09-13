@@ -2,135 +2,297 @@
 
 {% block title %}Request Custom Tailoring | Local Tailor Connect{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/3d-home.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/3d-elements.css') }}">
+<style>
+.create-order-layout {
+    display: grid;
+    grid-template-columns: 1.4fr 0.9fr;
+    gap: 2.5rem;
+    align-items: flex-start;
+    margin-top: 1.5rem;
+}
+
+.order-summary-sidebar {
+    position: sticky;
+    top: 100px;
+}
+
+.order-clay-summary {
+    background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(248,244,255,0.95));
+    border: 1.5px solid rgba(129, 140, 248, 0.28);
+    border-radius: 24px;
+    padding: 2rem;
+    box-shadow: 0 20px 50px rgba(100, 60, 180, 0.1);
+}
+
+.order-perks-list {
+    list-style: none;
+    padding: 0;
+    margin: 1.2rem 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.order-perks-list li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.88rem;
+    color: #4b3f62;
+    font-weight: 600;
+}
+
+.order-perk-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: rgba(129, 140, 248, 0.14);
+    display: grid;
+    place-items: center;
+    font-size: 0.8rem;
+    color: #6366f1;
+    flex-shrink: 0;
+}
+
+@media (max-width: 900px) {
+    .create-order-layout {
+        grid-template-columns: 1fr;
+    }
+    .order-summary-sidebar {
+        position: static;
+    }
+}
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container" style="max-width: 900px;">
+<div class="container" style="padding-top: 2rem; padding-bottom: 4rem;">
+
+    <!-- Soft background gradient blobs -->
+    <div class="bg-blob blob-pink" style="top: 80px; right: -80px; width: 320px; height: 320px;" aria-hidden="true"></div>
+    <div class="bg-blob blob-blue" style="top: 400px; left: -100px; width: 300px; height: 300px;" aria-hidden="true"></div>
+
     <div class="dashboard-header">
         <div class="dashboard-title">
-            <h1>Request Custom <span class="gradient-text">Tailoring or Alteration</span></h1>
-            <p>Submit your design requirements, attach measurement profiles, and receive a transparent digital quotation.</p>
+            <div class="hero-pill" style="margin-bottom: 10px;">
+                <span class="pill-dot" aria-hidden="true"></span>
+                CUSTOM BESPOKE STITCHING & ALTERATION
+            </div>
+            <h1>Request Custom <span class="gradient-text">Tailoring Fit</span></h1>
+            <p>Select your master tailor, attach reusable measurements, and receive transparent digital quotations.</p>
         </div>
-        <a href="{{ url_for('customer.tailors') }}" class="btn btn-secondary">&larr; Browse Tailors</a>
+        <a href="{{ url_for('customer.tailors') }}" class="btn btn-secondary">
+            📍 Explore Tailors on Map
+        </a>
     </div>
 
-    <!-- Intelligent Match Helper Callout -->
-    {% if not selected_tailor and matched_tailors %}
-    <div class="glass-card" style="margin-bottom: 24px; padding: 18px; border-color: rgba(99, 102, 241, 0.3);">
-        <div style="font-size: 0.85rem; font-weight: 700; color: #818cf8; margin-bottom: 8px;">
-            ✨ Recommended Tailors Based on Service Quality:
-        </div>
-        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-            {% for mt in matched_tailors %}
-            <a href="{{ url_for('orders.create_order', tailor_id=mt.id) }}" class="btn btn-secondary btn-sm" style="font-size: 0.8rem;">
-                🧵 {{ mt.shop_name }} ({{ mt.rating }}★) &bull; {{ mt.city or 'Local' }}
-            </a>
-            {% endfor %}
-        </div>
-    </div>
-    {% endif %}
+    <div class="create-order-layout">
 
-    <div class="glass-card">
-        <form method="POST" action="{{ url_for('orders.create_order') }}" enctype="multipart/form-data">
-            
-            <!-- Tailor Selection -->
-            <div class="form-group">
-                <label class="form-label" for="tailor_id">Select Tailor Studio *</label>
-                <select name="tailor_id" id="tailor_id" class="form-control" required>
-                    <option value="">-- Choose an Artisan Tailor --</option>
-                    {% for t in all_tailors %}
-                        <option value="{{ t.id }}" {% if selected_tailor and selected_tailor.id == t.id %}selected{% endif %}>
-                            {{ t.shop_name }} — {{ t.city or 'Local' }} (★ {{ t.rating }}) [{{ t.price_range or 'Custom' }}]
-                        </option>
-                    {% endfor %}
-                </select>
-            </div>
+        <!-- ── LEFT: THE ORDER FORM ── -->
+        <div class="glass-card" style="border-radius: 26px;">
+            <form method="POST" action="{{ url_for('orders.create_order') }}" enctype="multipart/form-data" id="customOrderForm">
 
-            <!-- Service & Garment Type -->
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <!-- 1. Tailor Studio Selection -->
                 <div class="form-group">
-                    <label class="form-label" for="service_type">Service Requested *</label>
-                    <select name="service_type" id="service_type" class="form-control" required>
-                        <option value="custom" selected>Bespoke Custom Stitching</option>
-                        <option value="alteration">Size Alteration & Fit Adjustment</option>
-                        <option value="repair">Garment Repair / Hemming</option>
-                        <option value="embroidery">Designer Embroidery / Work</option>
-                        <option value="other">Other Tailoring Service</option>
+                    <label class="form-label" for="tailor_id">Select Tailor Studio in Tamil Nadu *</label>
+                    <select name="tailor_id" id="tailor_id" class="form-control" required>
+                        <option value="">-- Choose an Artisan Tailor in Tamil Nadu --</option>
+                        {% for t in all_tailors %}
+                            <option value="{{ t.id }}" {% if selected_tailor and selected_tailor.id == t.id %}selected{% endif %}
+                                data-shop="{{ t.shop_name }}" data-city="{{ t.city }}" data-price="{{ t.price_range }}">
+                                {{ t.shop_name }} — 📍 {{ t.city or 'Tamil Nadu' }} (★ {{ t.rating }}) [{{ t.price_range or 'Custom Quote' }}]
+                            </option>
+                        {% endfor %}
                     </select>
+                    <small style="color: #6b5c7a; font-size: 0.78rem; margin-top: 4px; display: block;">
+                        Need recommendations? Browse verified tailors with specializations on the <a href="{{ url_for('customer.tailors') }}" style="color: #818cf8; font-weight: 700;">Live Map</a>.
+                    </small>
                 </div>
 
-                <div class="form-group">
-                    <label class="form-label" for="clothing_type">Garment / Clothing Type *</label>
-                    <input type="text" id="clothing_type" name="clothing_type" class="form-control" required placeholder="e.g. 2-Piece Suit, Kurta Pajama, Lehenga, Blouse, Formal Trousers">
+                <!-- 2. Service & Garment Type (2 Columns) -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                    <div class="form-group">
+                        <label class="form-label" for="service_type">Service Requested *</label>
+                        <select name="service_type" id="service_type" class="form-control" required>
+                            <option value="custom" selected>Bespoke Custom Stitching</option>
+                            <option value="alteration">Size Alteration & Fit Adjustment</option>
+                            <option value="repair">Garment Repair / Hemming</option>
+                            <option value="embroidery">Designer Aari / Zari Embroidery</option>
+                            <option value="other">Other Tailoring Service</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="clothing_type">Garment / Clothing Type *</label>
+                        <input type="text" id="clothing_type" name="clothing_type" class="form-control" required
+                               placeholder="e.g. Silk Saree Blouse, 2-Piece Suit, Kurta, Lehenga">
+                    </div>
                 </div>
-            </div>
 
-            <!-- Digital Measurement Profile Selection with Live Preview -->
-            <div class="form-group" style="margin-top: 12px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                    <label class="form-label" for="measurement_select" style="margin-bottom: 0;">Select Digital Measurement Profile</label>
-                    <a href="{{ url_for('measurements.add_measurement') }}" target="_blank" style="font-size: 0.8rem; color: var(--accent-primary);">+ Add New Profile</a>
-                </div>
+                <!-- 3. Digital Measurement Profile -->
+                <div class="form-group" style="background: rgba(129, 140, 248, 0.05); padding: 16px; border-radius: 16px; border: 1px dashed rgba(129, 140, 248, 0.3);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <label class="form-label" for="measurement_select" style="margin-bottom: 0; color: #4338ca;">
+                            📏 Attach Digital Measurement Profile
+                        </label>
+                        <a href="{{ url_for('measurements.add_measurement') }}" target="_blank" style="font-size: 0.8rem; color: #818cf8; font-weight: 700; text-decoration: none;">
+                            + Add New Measurements ↗
+                        </a>
+                    </div>
 
-                <select name="measurement_id" id="measurement_select" class="form-control">
-                    <option value="">-- Attach a Saved Profile (or specify in notes below) --</option>
-                    {% for m in measurements %}
-                        <option value="{{ m.id }}" {% if request.args.get('measurement_id')|int == m.id %}selected{% endif %}>
-                            {{ m.profile_name }} ({{ m.unit }}) — Saved {{ m.created_at|date }}
-                        </option>
-                    {% endfor %}
-                </select>
-
-                <!-- Live Dynamic Measurement Preview rendered by measurements.js -->
-                <div id="measurement_preview"></div>
-            </div>
-
-            <!-- Description / Instructions -->
-            <div class="form-group">
-                <label class="form-label" for="description">Detailed Requirements & Styling Specifications *</label>
-                <textarea id="description" name="description" class="form-control" rows="4" required placeholder="Describe desired styling details: collar style, lapel width, pockets, fabric type (provided or requested), sleeve cuffs, length preference, etc."></textarea>
-            </div>
-
-            <!-- Reference Image Upload with Preview -->
-            <div class="form-group">
-                <label class="form-label" for="reference_image">Design Reference Photo (Optional)</label>
-                <input type="file" id="reference_image" name="reference_image" class="form-control" accept="image/*">
-                <small style="color: var(--text-muted); font-size: 0.8rem;">Upload a photo or sketch of your desired pattern or fit.</small>
-                <div style="margin-top: 12px;">
-                    <img id="image_preview" src="" alt="Reference Preview" style="max-width: 200px; max-height: 200px; border-radius: var(--radius-sm); display: none; border: 1px solid var(--border-glass);">
-                </div>
-            </div>
-
-            <!-- Delivery & Expected Date -->
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                <div class="form-group">
-                    <label class="form-label" for="delivery_method">Fulfillment Method</label>
-                    <select name="delivery_method" id="delivery_method" class="form-control">
-                        <option value="pickup" selected>Self Pickup at Studio</option>
-                        <option value="delivery">Home Delivery</option>
+                    <select name="measurement_id" id="measurement_select" class="form-control">
+                        <option value="">-- Attach a Saved Profile (or specify body measurements in notes below) --</option>
+                        {% for m in measurements %}
+                            <option value="{{ m.id }}" {% if request.args.get('measurement_id')|int == m.id %}selected{% endif %}>
+                                {{ m.profile_name }} ({{ m.unit }}) — Saved {{ m.created_at|date }}
+                            </option>
+                        {% endfor %}
                     </select>
+
+                    <div id="measurement_preview" style="margin-top: 10px;"></div>
                 </div>
 
+                <!-- 4. Styling Specifications & Notes -->
                 <div class="form-group">
-                    <label class="form-label" for="expected_date">Target Date (Optional)</label>
-                    <input type="date" id="expected_date" name="expected_date" class="form-control">
+                    <label class="form-label" for="description">Detailed Requirements & Styling Specifications *</label>
+                    <textarea id="description" name="description" class="form-control" rows="4" required
+                              placeholder="Describe your desired pattern details: neck pattern (round, square, boat), sleeve length, pockets, lining fabric, fit tightness preference, etc."></textarea>
+                </div>
+
+                <!-- 5. Reference Photo Upload with Preview -->
+                <div class="form-group">
+                    <label class="form-label" for="reference_image">Design Reference Photo (Optional)</label>
+                    <input type="file" id="reference_image" name="reference_image" class="form-control" accept="image/*">
+                    <small style="color: #6b5c7a; font-size: 0.8rem; margin-top: 4px; display: block;">
+                        Upload a photo, sketch, or Pinterest reference of your desired pattern or silhouette.
+                    </small>
+                    <div style="margin-top: 12px;">
+                        <img id="image_preview" src="" alt="Reference Preview" style="max-width: 180px; max-height: 180px; border-radius: 12px; display: none; border: 1.5px solid rgba(129,140,248,0.25); box-shadow: 0 4px 14px rgba(0,0,0,0.06);">
+                    </div>
+                </div>
+
+                <!-- 6. Fulfillment & Date -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                    <div class="form-group">
+                        <label class="form-label" for="delivery_method">Fulfillment Method</label>
+                        <select name="delivery_method" id="delivery_method" class="form-control">
+                            <option value="pickup" selected>Self Pickup at Studio</option>
+                            <option value="delivery">Home Delivery</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="expected_date">Target Fitting / Delivery Date (Optional)</label>
+                        <input type="date" id="expected_date" name="expected_date" class="form-control">
+                    </div>
+                </div>
+
+                <!-- Conditional Delivery Address -->
+                <div class="form-group" id="delivery_address_group" style="display: none;">
+                    <label class="form-label" for="delivery_address">Home Delivery Address in Tamil Nadu *</label>
+                    <input type="text" id="delivery_address" name="delivery_address" class="form-control" placeholder="Street, Flat/Door No, Area, District, Pincode">
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 2rem; padding-top: 1.5rem; border-top: 1.5px solid rgba(129,140,248,0.18);">
+                    <a href="{{ url_for('customer.dashboard') }}" class="btn btn-secondary">
+                        Cancel
+                    </a>
+                    <button type="submit" class="btn btn-primary btn-lg" style="box-shadow: 0 10px 30px rgba(244, 114, 182, 0.4);">
+                        Submit Order Request ✂️
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- ── RIGHT: 3D ORDER SUMMARY & CRAFT GUARANTEE ── -->
+        <aside class="order-summary-sidebar">
+            <div class="order-clay-summary">
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 1rem;">
+                    <div style="font-size: 1.8rem; width: 44px; height: 44px; border-radius: 12px; background: rgba(244,114,182,0.15); display: grid; place-items: center;">
+                        🧵
+                    </div>
+                    <div>
+                        <h3 style="margin: 0; font-size: 1.15rem; color: #1e1030;">Craft Order Promise</h3>
+                        <span style="font-size: 0.78rem; color: #818cf8; font-weight: 700;">Verified Artisan Production</span>
+                    </div>
+                </div>
+
+                <p style="font-size: 0.88rem; color: #6b5c7a; line-height: 1.6; margin-bottom: 1.2rem;">
+                    Your bespoke tailoring request will be submitted directly to the artisan's studio queue. You will receive an upfront quote and live status updates for every step.
+                </p>
+
+                <ul class="order-perks-list">
+                    <li>
+                        <span class="order-perk-icon">✓</span>
+                        <span>Zero upfront payment until quotation approval</span>
+                    </li>
+                    <li>
+                        <span class="order-perk-icon">✓</span>
+                        <span>Digital measurement profile attached automatically</span>
+                    </li>
+                    <li>
+                        <span class="order-perk-icon">✓</span>
+                        <span>Live stage tracking: Cutting &rarr; Stitching &rarr; Fitting</span>
+                    </li>
+                    <li>
+                        <span class="order-perk-icon">✓</span>
+                        <span>Direct chat & design discussion with your master tailor</span>
+                    </li>
+                </ul>
+
+                <div style="margin-top: 1.6rem; padding: 14px; border-radius: 14px; background: rgba(129, 140, 248, 0.08); border: 1px solid rgba(129, 140, 248, 0.2); font-size: 0.8rem; color: #4338ca; text-align: center;">
+                    🔒 All measurements remain strictly private between you and your assigned tailor.
                 </div>
             </div>
+        </aside>
 
-            <!-- Conditional Delivery Address -->
-            <div class="form-group" id="delivery_address_group" style="display: none;">
-                <label class="form-label" for="delivery_address">Delivery Address</label>
-                <textarea id="delivery_address" name="delivery_address" class="form-control" rows="2" placeholder="Full residential or work delivery address with postal code"></textarea>
-            </div>
-
-            <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 32px; border-top: 1px solid var(--border-glass); padding-top: 20px;">
-                <a href="{{ url_for('customer.dashboard') }}" class="btn btn-secondary">Cancel</a>
-                <button type="submit" class="btn btn-primary btn-lg">Submit Order Request ✂️</button>
-            </div>
-        </form>
     </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
-<script src="{{ url_for('static', filename='js/measurements.js') }}"></script>
-<script src="{{ url_for('static', filename='js/orders.js') }}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // Delivery address toggle
+    const deliverySelect = document.getElementById('delivery_method');
+    const addressGroup = document.getElementById('delivery_address_group');
+    const addressInput = document.getElementById('delivery_address');
+
+    if (deliverySelect && addressGroup) {
+        deliverySelect.addEventListener('change', () => {
+            if (deliverySelect.value === 'delivery') {
+                addressGroup.style.display = 'block';
+                if (addressInput) addressInput.required = true;
+            } else {
+                addressGroup.style.display = 'none';
+                if (addressInput) addressInput.required = false;
+            }
+        });
+    }
+
+    // Image file preview
+    const refInput = document.getElementById('reference_image');
+    const imgPreview = document.getElementById('image_preview');
+
+    if (refInput && imgPreview) {
+        refInput.addEventListener('change', e => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = ev => {
+                    imgPreview.src = ev.target.result;
+                    imgPreview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            } else {
+                imgPreview.src = '';
+                imgPreview.style.display = 'none';
+            }
+        });
+    }
+});
+</script>
 {% endblock %}

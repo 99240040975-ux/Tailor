@@ -115,19 +115,6 @@
                     Manage your measurements, view Tamil Nadu artisans, and track your ongoing stitching orders.
                 </p>
 
-                <!-- Demo Quick-Fill Buttons for easy testing -->
-                <div class="demo-login-box">
-                    <span style="font-size: 0.76rem; font-weight: 800; color: #818cf8; text-transform: uppercase; letter-spacing: 0.5px;">⚡ Quick Demo Login:</span>
-                    <div style="display: flex; gap: 8px; margin-top: 6px; flex-wrap: wrap;">
-                        <button type="button" class="demo-badge-btn" id="demoCustomerBtn">
-                            👤 Customer (Arjun)
-                        </button>
-                        <button type="button" class="demo-badge-btn" id="demoTailorBtn">
-                            ✂️ Tailor (Ravi Master)
-                        </button>
-                    </div>
-                </div>
-
                 <!-- Flash Messages -->
                 {% with messages = get_flashed_messages(with_categories=true) %}
                     {% if messages %}
@@ -223,27 +210,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 pwdInput.type = 'password';
                 pwdToggle.textContent = '👁️';
             }
-        });
-    }
-
-    // Demo accounts quick-fill
-    const emailInput = document.getElementById('email');
-    const demoCustomerBtn = document.getElementById('demoCustomerBtn');
-    const demoTailorBtn = document.getElementById('demoTailorBtn');
-
-    if (demoCustomerBtn && emailInput && pwdInput) {
-        demoCustomerBtn.addEventListener('click', () => {
-            emailInput.value = 'arjun@example.com';
-            pwdInput.value = 'password123';
-            emailInput.focus();
-        });
-    }
-
-    if (demoTailorBtn && emailInput && pwdInput) {
-        demoTailorBtn.addEventListener('click', () => {
-            emailInput.value = 'ravi@tailor.com';
-            pwdInput.value = 'password123';
-            emailInput.focus();
         });
     }
 });

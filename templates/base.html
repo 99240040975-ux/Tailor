@@ -29,10 +29,14 @@
         rel="stylesheet"
     >
 
-    <!-- Global stylesheet -->
+    <!-- Global stylesheets -->
     <link
         rel="stylesheet"
         href="{{ url_for('static', filename='css/style.css') }}"
+    >
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/3d-elements.css') }}"
     >
 
     <style>
@@ -479,6 +483,20 @@
                             Find Tailors
                         </a>
 
+                        <a
+                            href="{{ url_for('measurements.list_measurements') }}"
+                            class="nav-link"
+                        >
+                            Measurements 📏
+                        </a>
+
+                        <a
+                            href="{{ url_for('orders.list_orders') }}"
+                            class="nav-link"
+                        >
+                            My Orders 📦
+                        </a>
+
                     {% elif current_user.role == "tailor" %}
 
                         <a
@@ -611,6 +629,20 @@
                         class="mobile-nav-link"
                     >
                         Find Tailors
+                    </a>
+
+                    <a
+                        href="{{ url_for('measurements.list_measurements') }}"
+                        class="mobile-nav-link"
+                    >
+                        Measurements 📏
+                    </a>
+
+                    <a
+                        href="{{ url_for('orders.list_orders') }}"
+                        class="mobile-nav-link"
+                    >
+                        My Orders 📦
                     </a>
 
                 {% elif current_user.role == "tailor" %}

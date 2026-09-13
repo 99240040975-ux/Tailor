@@ -168,43 +168,90 @@ SHOP_NAMES = [
 ]
 
 def seed_tn_tailors():
-    app = create_app()
-    with app.app_context():
-        # Ensure Tamil Nadu State exists
-        tn_state = State.query.filter_by(name="Tamil Nadu").first()
-        state_id = tn_state.id if tn_state else 31
+    from models.user import User
+    # Ensure Tamil Nadu State exists
+    tn_state = State.query.filter(
+        db.or_(
+            State.name.ilike("Tamil Nadu"),
+            State.code.ilike("TN")
+        )
+    ).first()
+    state_id = tn_state.id if tn_state else 31
 
-        tailors = Tailor.query.all()
-        print(f"Updating {len(tailors)} tailors across Tamil Nadu...")
+    # If we have fewer than len(TN_LOCATIONS) tailors, create missing tailors
+    current_tailor_count = Tailor.query.count()
+    if current_tailor_count < len(TN_LOCATIONS):
+        for idx in range(current_tailor_count, len(TN_LOCATIONS)):
+            loc = TN_LOCATIONS[idx]
+            email = f"tailor_{loc['city'].lower()}_{idx+1}@tailorconnect.test"
+            user = User.query.filter_by(email=email).first()
+            if not user:
+                user = User(
+                    name=f"Master {loc['city']} Artisan",
+                    email=email,
+                    role="tailor",
+                    phone=f"987654{idx:04d}",
+                    is_active=True
+                )
+                user.set_password("password123")
+                db.session.add(user)
+                db.session.flush()
 
-        for idx, tailor in enumerate(tailors):
-            loc = TN_LOCATIONS[idx % len(TN_LOCATIONS)]
-            
-            # Keep special shop names if customized, otherwise give clean Tamil Nadu craft shop name
-            if "Studio" in tailor.shop_name or "053c9e19" in tailor.shop_name or "Test" in tailor.shop_name:
-                tailor.shop_name = f"{SHOP_NAMES[idx % len(SHOP_NAMES)]} ({loc['city']})"
-            
-            tailor.state_id = state_id
+            tailor = Tailor.query.filter_by(user_id=user.id).first()
+            if not tailor:
+                tailor = Tailor(
+                    user_id=user.id,
+                    shop_name=f"{SHOP_NAMES[idx % len(SHOP_NAMES)]} ({loc['city']})",
+                    city=loc["city"],
+                    state_id=state_id,
+                    district_id=loc["district_id"],
+                    latitude=loc["lat"] + round(random.uniform(-0.012, 0.012), 5),
+                    longitude=loc["lng"] + round(random.uniform(-0.012, 0.012), 5),
+                    address=loc["address"],
+                    specialization=loc["specialties"],
+                    is_active=True,
+                    is_verified=True,
+                    availability="Available",
+                    rating=round(random.uniform(4.6, 4.95), 1),
+                    total_reviews=random.randint(22, 98),
+                    experience=random.randint(8, 25),
+                    price_range=random.choice(["₹450 - ₹1,800", "₹600 - ₹2,500", "₹800 - ₹3,500", "₹1,200 - ₹5,000"])
+                )
+                db.session.add(tailor)
+
+    # Now update all existing tailors to ensure they have TN coordinates
+    tailors = Tailor.query.all()
+    print(f"Ensuring {len(tailors)} tailors across Tamil Nadu...")
+
+    for idx, tailor in enumerate(tailors):
+        loc = TN_LOCATIONS[idx % len(TN_LOCATIONS)]
+        if not tailor.city or tailor.city not in [l['city'] for l in TN_LOCATIONS]:
             tailor.city = loc["city"]
+        if not tailor.district_id:
             tailor.district_id = loc["district_id"]
-            tailor.latitude = loc["lat"] + round(random.uniform(-0.015, 0.015), 5)
-            tailor.longitude = loc["lng"] + round(random.uniform(-0.015, 0.015), 5)
+        if not tailor.state_id:
+            tailor.state_id = state_id
+        if not tailor.latitude or not tailor.longitude:
+            tailor.latitude = loc["lat"] + round(random.uniform(-0.012, 0.012), 5)
+            tailor.longitude = loc["lng"] + round(random.uniform(-0.012, 0.012), 5)
+        if not tailor.address:
             tailor.address = loc["address"]
+        if not tailor.specialization:
             tailor.specialization = loc["specialties"]
-            tailor.is_active = True
-            tailor.is_verified = True
-            tailor.availability = "Available"
-            if not tailor.rating or tailor.rating < 4.0:
-                tailor.rating = round(random.uniform(4.5, 4.95), 1)
-            if not tailor.total_reviews or tailor.total_reviews < 10:
-                tailor.total_reviews = random.randint(18, 95)
-            if not tailor.experience:
-                tailor.experience = random.randint(6, 25)
-            if not tailor.price_range:
-                tailor.price_range = random.choice(["₹450 - ₹1,800", "₹600 - ₹2,500", "₹800 - ₹3,500", "₹1,200 - ₹5,000"])
+        tailor.is_active = True
+        tailor.is_verified = True
+        tailor.availability = "Available"
+        if not tailor.rating or tailor.rating < 4.0:
+            tailor.rating = round(random.uniform(4.6, 4.95), 1)
+        if not tailor.total_reviews or tailor.total_reviews < 10:
+            tailor.total_reviews = random.randint(18, 95)
+        if not tailor.experience:
+            tailor.experience = random.randint(6, 25)
+        if not tailor.price_range:
+            tailor.price_range = random.choice(["₹450 - ₹1,800", "₹600 - ₹2,500", "₹800 - ₹3,500", "₹1,200 - ₹5,000"])
 
-        db.session.commit()
-        print("Successfully updated tailors with authentic Tamil Nadu coordinates & locations!")
+    db.session.commit()
+    print("Successfully ensured tailors across Tamil Nadu with coordinates & locations!")
 
 if __name__ == "__main__":
     seed_tn_tailors()

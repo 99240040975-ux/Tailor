@@ -2,14 +2,23 @@
 
 {% block title %}Digital Measurement Vault | Local Tailor Connect{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/3d-home.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/3d-elements.css') }}">
+{% endblock %}
+
 {% block content %}
-<div class="container">
+<div class="container" style="padding-top: 1.5rem;">
     <div class="dashboard-header">
         <div class="dashboard-title">
+            <div class="hero-pill" style="margin-bottom: 10px;">
+                <span class="pill-dot" aria-hidden="true"></span>
+                DIGITAL FITTING VAULT • PRIVATE & REUSABLE
+            </div>
             <h1>Digital <span class="gradient-text">Measurement Vault</span></h1>
             <p>Maintain reusable measurement profiles for suits, shirts, kurtas, or dresses without repeat measurements.</p>
         </div>
-        <a href="{{ url_for('measurements.add_measurement') }}" class="btn btn-primary">+ Create New Profile</a>
+        <a href="{{ url_for('measurements.add_measurement') }}" class="btn btn-primary">+ Create New Profile 📏</a>
     </div>
 
     {% if profiles %}
