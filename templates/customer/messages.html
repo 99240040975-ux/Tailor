@@ -1,44 +1,92 @@
 {% extends "base.html" %}
 
-{% block title %}Messages & Consultations | Local Tailor Connect{% endblock %}
+{% block title %}Direct Consultations & Chat | Local Tailor Connect{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/3d-home.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/3d-elements.css') }}">
+<style>
+.chat-contact.active {
+    background: rgba(129, 140, 248, 0.16) !important;
+    border-left: 4px solid #818cf8 !important;
+}
+.chat-avatar-wrap {
+    position: relative;
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+}
+.chat-online-dot {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #10b981;
+    border: 2px solid #ffffff;
+}
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container">
-    <div class="dashboard-header">
+<div class="container" style="padding-top: 1.5rem; padding-bottom: 3.5rem;">
+    <!-- Soft background gradient blobs -->
+    <div class="bg-blob blob-pink" style="top: 80px; right: -80px; width: 320px; height: 320px;" aria-hidden="true"></div>
+    <div class="bg-blob blob-blue" style="top: 400px; left: -100px; width: 300px; height: 300px;" aria-hidden="true"></div>
+
+    <div class="dashboard-header" style="margin-bottom: 20px;">
         <div class="dashboard-title">
-            <h1>Direct <span class="gradient-text">Messages</span></h1>
-            <p>Communicate directly with your tailor about design specs, measurements, and fittings.</p>
+            <div class="hero-pill" style="margin-bottom: 10px;">
+                <span class="pill-dot" aria-hidden="true"></span>
+                DIRECT MASTER ARTISAN CONSULTATIONS
+            </div>
+            <h1 style="margin: 0 0 6px;">Live <span class="gradient-text">Chat & Fitting Room</span></h1>
+            <p style="color: #6b5c7a; margin: 0; font-size: 0.95rem;">
+                Discuss styling specifications, fabric selection, fitting adjustments, and delivery timelines directly.
+            </p>
         </div>
+        {% if active_order %}
+            <a href="{{ url_for('orders.order_details', order_id=active_order.id) }}" class="btn btn-secondary">
+                📦 Back to Order #{{ active_order.id }}
+            </a>
+        {% endif %}
     </div>
 
     <div class="chat-container">
         <!-- Sidebar Contacts -->
         <div class="chat-sidebar">
-            <div style="padding: 16px; border-bottom: 1px solid var(--border-glass); font-weight: 700; color: var(--text-secondary); font-size: 0.85rem; text-transform: uppercase;">
-                Conversations
+            <div style="padding: 16px 20px; border-bottom: 1.5px solid rgba(129, 140, 248, 0.2); font-weight: 800; color: #1e1030; font-size: 0.88rem; text-transform: uppercase; letter-spacing: 0.5px; display: flex; justify-content: space-between; align-items: center;">
+                <span>Conversations</span>
+                <span style="font-size: 0.78rem; font-weight: 700; color: #818cf8; background: rgba(129, 140, 248, 0.12); padding: 3px 8px; border-radius: 100px;">{{ contacts|length if contacts else 0 }}</span>
             </div>
 
             {% if contacts %}
                 {% for contact in contacts %}
                 <a href="{{ url_for('customer.messages', user_id=contact.id) }}" class="chat-contact {% if active_contact and active_contact.id == contact.id %}active{% endif %}">
-                    <div class="tailor-avatar" style="width: 40px; height: 40px; font-size: 18px; border-radius: var(--radius-full);">
-                        {% if contact.profile_pic %}
-                            <img src="{{ url_for('static', filename=contact.profile_pic) }}" alt="{{ contact.name }}" style="width: 100%; height: 100%; object-fit: cover; border-radius: var(--radius-full);">
-                        {% else %}
-                            {{ '🧵' if contact.is_tailor else '👤' }}
-                        {% endif %}
+                    <div class="chat-avatar-wrap">
+                        <div class="tailor-avatar" style="width: 44px; height: 44px; font-size: 20px; border-radius: 12px; background: rgba(129, 140, 248, 0.15); display: grid; place-items: center;">
+                            {% if contact.profile_pic %}
+                                <img src="{{ url_for('static', filename=contact.profile_pic) }}" alt="{{ contact.name }}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 12px;">
+                            {% else %}
+                                {{ '✂️' if contact.is_tailor else '👤' }}
+                            {% endif %}
+                        </div>
+                        <span class="chat-online-dot"></span>
                     </div>
-                    <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                        <strong style="font-size: 0.95rem;">{{ contact.name }}</strong>
-                        <div style="font-size: 0.78rem; color: var(--text-muted);">
-                            {{ contact.role|capitalize }}
+                    <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1;">
+                        <strong style="font-size: 0.95rem; color: #1e1030;">{{ contact.name }}</strong>
+                        <div style="font-size: 0.78rem; color: #6b5c7a; margin-top: 2px;">
+                            {{ 'Artisan Tailor' if contact.is_tailor else 'Customer' }}
                         </div>
                     </div>
                 </a>
                 {% endfor %}
             {% else %}
-                <div style="padding: 24px 16px; text-align: center; color: var(--text-muted); font-size: 0.85rem;">
-                    No past conversations. When you place an order, a chat thread opens automatically.
+                <div style="padding: 36px 20px; text-align: center; color: #6b5c7a; font-size: 0.88rem;">
+                    <div style="font-size: 32px; margin-bottom: 8px;">🧵</div>
+                    <p style="margin: 0 0 6px; font-weight: 700; color: #1e1030;">No Conversations Yet</p>
+                    <small>When you request custom tailoring or connect with a tailor, your live chat will appear here.</small>
                 </div>
             {% endif %}
         </div>
@@ -47,22 +95,30 @@
         <div class="chat-main">
             {% if active_contact %}
                 <div class="chat-header">
-                    <div style="display: flex; align-items: center; gap: 12px;">
-                        <div class="tailor-avatar" style="width: 40px; height: 40px; font-size: 18px; border-radius: var(--radius-full);">
-                            {{ '🧵' if active_contact.is_tailor else '👤' }}
+                    <div style="display: flex; align-items: center; gap: 14px;">
+                        <div class="chat-avatar-wrap">
+                            <div class="tailor-avatar" style="width: 44px; height: 44px; font-size: 20px; border-radius: 12px; background: rgba(129, 140, 248, 0.15); display: grid; place-items: center;">
+                                {{ '✂️' if active_contact.is_tailor else '👤' }}
+                            </div>
+                            <span class="chat-online-dot"></span>
                         </div>
                         <div>
-                            <strong>{{ active_contact.name }}</strong>
-                            <div style="font-size: 0.78rem; color: var(--text-muted);">
-                                {{ 'Tailor Partner' if active_contact.is_tailor else 'Customer' }}
-                                {% if active_order %} &bull; Re: Order #{{ active_order.id }} ({{ active_order.clothing_type }}){% endif %}
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <strong style="font-size: 1.05rem; color: #1e1030;">{{ active_contact.name }}</strong>
+                                <span style="font-size: 0.72rem; font-weight: 800; color: #059669; background: #ecfdf5; padding: 2px 7px; border-radius: 6px; border: 1px solid #a7f3d0;">
+                                    ✓ Active
+                                </span>
+                            </div>
+                            <div style="font-size: 0.8rem; color: #6b5c7a; margin-top: 2px;">
+                                {{ 'Master Tailor Partner' if active_contact.is_tailor else 'Customer' }}
+                                {% if active_order %} &bull; <strong style="color: #818cf8;">Re: Order #{{ active_order.id }} ({{ active_order.clothing_type }})</strong>{% endif %}
                             </div>
                         </div>
                     </div>
 
                     {% if active_order %}
-                        <a href="{{ url_for('orders.order_details', order_id=active_order.id) }}" class="btn btn-outline btn-sm">
-                            View Order #{{ active_order.id }}
+                        <a href="{{ url_for('orders.order_details', order_id=active_order.id) }}" class="btn btn-secondary btn-sm" style="font-weight: 700;">
+                            View Order #{{ active_order.id }} &rarr;
                         </a>
                     {% endif %}
                 </div>
@@ -73,19 +129,20 @@
                         {% for msg in chat_messages %}
                             {% set is_me = (msg.sender_id == current_user.id) %}
                             <div class="message-bubble {% if is_me %}message-outgoing{% else %}message-incoming{% endif %}">
-                                <div style="font-size: 0.75rem; font-weight: 700; margin-bottom: 2px; opacity: 0.85;">
+                                <div style="font-size: 0.75rem; font-weight: 700; margin-bottom: 3px; opacity: 0.9;">
                                     {{ 'You' if is_me else msg.sender.name }}
                                 </div>
-                                <div>{{ msg.message }}</div>
+                                <div style="font-size: 0.92rem;">{{ msg.message }}</div>
                                 <div class="message-time">
-                                    {{ msg.created_at.strftime('%I:%M %p') }}
+                                    {{ msg.created_at.strftime('%I:%M %p') }} {% if is_me %}✓✓{% endif %}
                                 </div>
                             </div>
                         {% endfor %}
                     {% else %}
-                        <div style="margin: auto; text-align: center; color: var(--text-muted);">
-                            <p>No messages yet in this conversation.</p>
-                            <small>Type below to begin discussing measurements, fabrics, or styling.</small>
+                        <div style="margin: auto; text-align: center; color: #6b5c7a; padding: 20px;">
+                            <div style="font-size: 38px; margin-bottom: 10px;">✂️</div>
+                            <p style="font-weight: 700; color: #1e1030; margin-bottom: 4px;">Direct Artisan Consultation Channel</p>
+                            <small>Discuss fabric colors, necklines, pocket styles, or alteration instructions below.</small>
                         </div>
                     {% endif %}
                 </div>
@@ -96,14 +153,17 @@
                     {% if active_order %}
                         <input type="hidden" name="order_id" value="{{ active_order.id }}">
                     {% endif %}
-                    <input type="text" name="message" class="form-control" placeholder="Type your message or requirement..." required autocomplete="off">
-                    <button type="submit" class="btn btn-primary" style="padding: 10px 20px;">Send ✉️</button>
+                    <span style="font-size: 1.3rem; opacity: 0.6; cursor: pointer;" title="Attach reference">📎</span>
+                    <input type="text" name="message" class="form-control" placeholder="Type your message, fabric request or measurement note..." required autocomplete="off" style="border-radius: 12px; font-size: 0.92rem;">
+                    <button type="submit" class="btn btn-primary" style="padding: 11px 22px; font-weight: 700; border-radius: 12px; display: inline-flex; align-items: center; gap: 6px;">
+                        Send ✉️
+                    </button>
                 </form>
             {% else %}
-                <div style="margin: auto; text-align: center; color: var(--text-muted); padding: 40px;">
+                <div style="margin: auto; text-align: center; color: #6b5c7a; padding: 40px;">
                     <div style="font-size: 48px; margin-bottom: 12px;">💬</div>
-                    <h3>Select a Conversation</h3>
-                    <p style="font-size: 0.9rem;">Choose a contact on the left or click 'Chat with Tailor' from any order page.</p>
+                    <h3 style="color: #1e1030; font-family: 'Playfair Display', serif;">Select a Conversation</h3>
+                    <p style="font-size: 0.92rem; max-width: 380px; margin: 0 auto;">Choose a contact on the left or click 'Chat with Tailor' from any custom order page to begin communicating.</p>
                 </div>
             {% endif %}
         </div>

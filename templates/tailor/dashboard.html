@@ -2,21 +2,36 @@
 
 {% block title %}Tailor Studio Dashboard | Local Tailor Connect{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/3d-home.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/3d-elements.css') }}">
+{% endblock %}
+
 {% block content %}
-<div class="container">
+<div class="container" style="padding-top: 1.5rem; padding-bottom: 3.5rem;">
+    <!-- Soft background gradient blobs -->
+    <div class="bg-blob blob-pink" style="top: 80px; right: -80px; width: 320px; height: 320px;" aria-hidden="true"></div>
+    <div class="bg-blob blob-blue" style="top: 400px; left: -100px; width: 300px; height: 300px;" aria-hidden="true"></div>
+
     <div class="dashboard-header">
         <div class="dashboard-title">
-            <div style="display: flex; align-items: center; gap: 10px;">
-                <h1>{{ tailor.shop_name }} <span class="gradient-text">Studio</span></h1>
+            <div class="hero-pill" style="margin-bottom: 10px;">
+                <span class="pill-dot" aria-hidden="true"></span>
+                MASTER ARTISAN WORKBENCH &bull; TAMIL NADU
+            </div>
+            <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                <h1 style="margin: 0;">{{ tailor.shop_name }} <span class="gradient-text">Studio</span></h1>
                 {% if tailor.availability %}
-                    <span class="status-badge status-ready">Open for Orders</span>
+                    <span class="status-badge status-ready" style="font-size: 0.84rem;">✓ Open for Orders</span>
                 {% else %}
-                    <span class="status-badge status-cancelled">Orders Paused</span>
+                    <span class="status-badge status-cancelled" style="font-size: 0.84rem;">Orders Paused</span>
                 {% endif %}
             </div>
-            <p>Master Tailor: <strong>{{ current_user.name }}</strong> &bull; 📍 {{ tailor.city or 'Local' }}</p>
+            <p style="color: #6b5c7a; margin-top: 4px; font-size: 0.95rem;">
+                Craft Master: <strong style="color: #1e1030;">{{ current_user.name }}</strong> &bull; 📍 {{ tailor.city or 'Tamil Nadu' }} &bull; ★ {{ tailor.rating }} ({{ tailor.total_reviews }} reviews)
+            </p>
         </div>
-        <div style="display: flex; gap: 12px;">
+        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
             <a href="{{ url_for('tailor.quotations') }}" class="btn btn-primary">Pending Quotes ({{ pending_count }})</a>
             <a href="{{ url_for('tailor.edit_profile') }}" class="btn btn-secondary">Edit Studio Profile</a>
         </div>

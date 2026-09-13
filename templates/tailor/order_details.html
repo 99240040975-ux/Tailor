@@ -2,23 +2,36 @@
 
 {% block title %}Manage Order #{{ order.id }} | Tailor Studio{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/3d-home.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/3d-elements.css') }}">
+{% endblock %}
+
 {% block content %}
-<div class="container">
+<div class="container" style="padding-top: 1.5rem; padding-bottom: 3.5rem;">
+    <!-- Soft background gradient blobs -->
+    <div class="bg-blob blob-pink" style="top: 80px; right: -80px; width: 320px; height: 320px;" aria-hidden="true"></div>
+    <div class="bg-blob blob-blue" style="top: 400px; left: -100px; width: 300px; height: 300px;" aria-hidden="true"></div>
+
     <div class="dashboard-header">
         <div class="dashboard-title">
-            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 6px;">
-                <h1>Production Order <span class="gradient-text">#{{ order.id }}</span></h1>
-                <span class="status-badge status-{{ order.status }}">
+            <div class="hero-pill" style="margin-bottom: 10px;">
+                <span class="pill-dot" aria-hidden="true"></span>
+                STUDIO PRODUCTION WORKBENCH
+            </div>
+            <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 6px; flex-wrap: wrap;">
+                <h1 style="margin: 0;">Production Order <span class="gradient-text">#{{ order.id }}</span></h1>
+                <span class="status-badge status-{{ order.status }}" style="font-size: 0.92rem; padding: 6px 14px;">
                     {{ order.status_display }}
                 </span>
             </div>
-            <p>Customer: <strong>{{ order.customer.name }}</strong> (📞 {{ order.customer.phone or 'N/A' }}) &bull; Placed: {{ order.created_at|date }}</p>
+            <p style="color: #6b5c7a; margin: 4px 0 0; font-size: 0.95rem;">Customer: <strong style="color: #1e1030;">{{ order.customer.name }}</strong> (📞 {{ order.customer.phone or 'N/A' }}) &bull; Placed: {{ order.created_at|date }}</p>
         </div>
-        <div style="display: flex; gap: 12px;">
-            <a href="{{ url_for('customer.messages', user_id=order.customer_id, order_id=order.id) }}" class="btn btn-secondary">
+        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+            <a href="{{ url_for('customer.messages', user_id=order.customer_id, order_id=order.id) }}" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px;">
                 💬 Chat with Customer
             </a>
-            <a href="{{ url_for('tailor.orders') }}" class="btn btn-outline">&larr; Back to Queue</a>
+            <a href="{{ url_for('tailor.orders') }}" class="btn btn-secondary">&larr; Back to Queue</a>
         </div>
     </div>
 

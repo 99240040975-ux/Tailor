@@ -2,23 +2,53 @@
 
 {% block title %}Order #{{ order.id }} Tracking | Local Tailor Connect{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/3d-home.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/3d-elements.css') }}">
+<style>
+.stages-pipeline {
+    position: relative;
+}
+.stages-pipeline::before {
+    content: '';
+    position: absolute;
+    top: 28px;
+    left: 40px;
+    right: 40px;
+    height: 3px;
+    background: #e2e8f0;
+    z-index: 1;
+}
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container">
+<div class="container" style="padding-top: 1.5rem; padding-bottom: 3.5rem;">
+    <!-- Soft background gradient blobs -->
+    <div class="bg-blob blob-pink" style="top: 80px; right: -80px; width: 320px; height: 320px;" aria-hidden="true"></div>
+    <div class="bg-blob blob-blue" style="top: 400px; left: -100px; width: 300px; height: 300px;" aria-hidden="true"></div>
+
     <div class="dashboard-header">
         <div class="dashboard-title">
-            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 6px;">
-                <h1>Order <span class="gradient-text">#{{ order.id }}</span></h1>
-                <span class="status-badge status-{{ order.status }}" style="font-size: 0.9rem;">
+            <div class="hero-pill" style="margin-bottom: 10px;">
+                <span class="pill-dot" aria-hidden="true"></span>
+                PRODUCTION TRACKING & ARTISAN UPDATES
+            </div>
+            <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 6px; flex-wrap: wrap;">
+                <h1 style="margin: 0;">Order <span class="gradient-text">#{{ order.id }}</span></h1>
+                <span class="status-badge status-{{ order.status }}" style="font-size: 0.92rem; padding: 6px 14px;">
                     {{ order.status_display }}
                 </span>
             </div>
-            <p>{{ order.clothing_type }} &bull; Assigned to <strong>{{ order.tailor.shop_name }}</strong></p>
+            <p style="color: #6b5c7a; margin: 4px 0 0; font-size: 0.95rem;">
+                {{ order.clothing_type }} &bull; Assigned to <strong style="color: #1e1030;">{{ order.tailor.shop_name }}</strong> (📍 {{ order.tailor.city or 'Tamil Nadu' }})
+            </p>
         </div>
-        <div style="display: flex; gap: 12px;">
-            <a href="{{ url_for('customer.messages', user_id=order.tailor.user_id, order_id=order.id) }}" class="btn btn-secondary">
+        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+            <a href="{{ url_for('customer.messages', user_id=order.tailor.user_id, order_id=order.id) }}" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px;">
                 💬 Chat with Tailor
             </a>
-            <a href="{{ url_for('orders.list_orders') }}" class="btn btn-outline">&larr; Back to Orders</a>
+            <a href="{{ url_for('orders.list_orders') }}" class="btn btn-secondary">&larr; Back to Orders</a>
         </div>
     </div>
 
@@ -27,19 +57,21 @@
         <div class="tracker-header">
             <div>
                 <h3>Production Lifecycle Pipeline</h3>
-                <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 2px;">
+                <p style="color: #6b5c7a; font-size: 0.88rem; margin-top: 4px; margin-bottom: 0;">
                     Real-time status updates provided directly by your master tailor.
                 </p>
             </div>
-            <div style="font-weight: 700; font-size: 1.1rem; color: var(--accent-primary);">
-                {{ order.progress_percentage }}% Complete
+            <div style="font-weight: 800; font-size: 1.15rem; color: #7c3aed; background: rgba(124, 58, 237, 0.08); padding: 6px 16px; border-radius: 100px; border: 1px solid rgba(124, 58, 237, 0.2);">
+                ⚡ {{ order.progress_percentage }}% Complete
             </div>
         </div>
 
-        <div class="progress-bar-container">
+        <div class="progress-bar-container" style="height: 10px; margin: 16px 0 20px;">
             <div class="progress-bar-fill" style="width: {{ order.progress_percentage }}%;"></div>
         </div>
 
+        {% set stage_codes = ['pending', 'quoted', 'confirmed', 'cutting', 'stitching', 'alteration', 'quality_check', 'ready', 'delivered'] %}
+        {% set current_idx = stage_codes.index(order.status) if order.status in stage_codes else 0 %}
         {% set stages = [
             ('pending', 'Pending Quote'),
             ('quoted', 'Quotation Sent'),
@@ -53,15 +85,15 @@
         ] %}
 
         <div class="stages-pipeline">
-            {% set passed = true %}
             {% for code, label in stages %}
                 {% set is_current = (order.status == code) %}
-                <div class="stage-step {% if is_current %}active{% elif order.progress_percentage >= 100 or (order.status != 'pending' and loop.index0 < 4 and order.progress_percentage > 35) %}completed{% endif %}">
+                {% set is_past = (loop.index0 < current_idx) or (order.status == 'delivered') %}
+                <div class="stage-step {% if is_current %}active{% elif is_past %}completed{% endif %}">
                     <div class="stage-dot">
-                        {% if is_current %}
-                            ●
-                        {% elif order.status == 'delivered' %}
+                        {% if is_past %}
                             ✓
+                        {% elif is_current %}
+                            ●
                         {% else %}
                             {{ loop.index }}
                         {% endif %}

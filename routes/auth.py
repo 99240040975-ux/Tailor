@@ -364,13 +364,16 @@ def register():
                 db.session.add(tailor_profile)
 
             db.session.commit()
+            import logging
+            logging.info("User successfully registered and committed to database: id=%s, email=%s, role=%s", new_user.id, new_user.email, new_user.role)
 
-        except Exception:
+        except Exception as exc:
             db.session.rollback()
+            import logging
+            logging.error("Failed to register account for email '%s': %s", email, exc, exc_info=True)
 
             flash(
-                "We couldn't create your account right now. "
-                "Please try again.",
+                "We couldn't create your account right now. Please try again.",
                 "danger",
             )
 

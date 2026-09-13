@@ -140,6 +140,7 @@
                                 type="email"
                                 id="email"
                                 name="email"
+                                value="{{ email or request.form.get('email', '') or request.args.get('email', '') }}"
                                 placeholder="name@example.com"
                                 autocomplete="email"
                                 required
