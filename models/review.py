@@ -60,6 +60,27 @@ class Review(db.Model):
         index=True,
     )
 
+    def __init__(
+        self,
+        customer_id=None,
+        tailor_id=None,
+        order_id=None,
+        rating=None,
+        comment=None,
+        **kwargs,
+    ):
+        init_kwargs = {
+            "customer_id": customer_id,
+            "tailor_id": tailor_id,
+            "order_id": order_id,
+            "rating": rating,
+            "comment": comment,
+        }
+        for key, val in init_kwargs.items():
+            if val is not None:
+                kwargs[key] = val
+        super().__init__(**kwargs)
+
     # --------------------------------------------------------
     # Validation
     # --------------------------------------------------------

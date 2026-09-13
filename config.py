@@ -18,6 +18,7 @@ BASE_DIR = Path(__file__).resolve().parent
 # ============================================================
 
 raw_database_url = os.getenv("DATABASE_URL", "").strip()
+DATABASE_URL_CONFIGURED = bool(raw_database_url)
 
 if raw_database_url:
     # Render and some older PostgreSQL providers may return
@@ -61,6 +62,7 @@ class Config:
     # --------------------------------------------------------
 
     SQLALCHEMY_DATABASE_URI = DATABASE_URL
+    DATABASE_URL_CONFIGURED = DATABASE_URL_CONFIGURED
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     if is_sqlite_database():

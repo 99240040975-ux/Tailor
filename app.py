@@ -24,10 +24,16 @@ def create_app(config_name=None):
         config["default"],
     )
 
-    if config_name == "production" and not selected_config.SECRET_KEY:
-        raise RuntimeError(
-            "SECRET_KEY must be set when running in production."
-        )
+    if config_name == "production":
+        if not selected_config.SECRET_KEY:
+            raise RuntimeError(
+                "SECRET_KEY must be set when running in production."
+            )
+
+        if not selected_config.DATABASE_URL_CONFIGURED:
+            raise RuntimeError(
+                "DATABASE_URL must be set when running in production."
+            )
 
     app = Flask(__name__)
     app.config.from_object(selected_config)

@@ -263,6 +263,18 @@
 
 document.addEventListener("DOMContentLoaded", function () {
 
+    const card = document.querySelector(".auth-card");
+
+    const visual = document.querySelector(".auth-visual");
+
+    if (card) {
+        card.classList.add("auth-ready");
+    }
+
+    if (visual) {
+        visual.classList.add("visual-ready");
+    }
+
     const passwordInput =
         document.getElementById("password");
 
