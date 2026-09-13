@@ -87,7 +87,38 @@ def run_tests():
     assert "Create New Profile" in r8.text
     print("PASS 8: Customer measurement section loaded with digital vault profiles.")
 
-    print("\nALL 8 END-TO-END SYSTEM TESTS PASSED SUCCESSFULLY!")
+    # 9. Verify Footer links (Home, Dashboard, Logout) are removed from footer
+    assert '<div class="footer-links">' not in r8.text, "Footer links should be removed from bottom"
+    print("PASS 9: Verified footer does not display redundant duplicate navigation links.")
+
+    # 10. Tailor Registration with Place & Area and Immediate Map Visibility
+    import time
+    ts = int(time.time())
+    new_tailor_email = f"tailor_user_{ts}@test.com"
+    s2 = requests.Session()
+    r10_post = s2.post(f"{BASE_URL}/auth/register", data={
+        "name": "Kovai Master Crafter",
+        "email": new_tailor_email,
+        "password": "password123",
+        "confirm_password": "password123",
+        "phone": "9843210987",
+        "role": "tailor",
+        "shop_name": f"Kovai Bespoke Atelier {ts}",
+        "city": "Coimbatore",
+        "area": "RS Puram",
+        "address": "45 DB Road, RS Puram",
+        "specialization": "Bespoke Men's Suits, Tuxedos, Formal Blazers",
+        "terms": "1"
+    }, allow_redirects=True)
+    assert r10_post.status_code == 200
+
+    # Fetch map and check if the newly registered tailor is immediately visible on map
+    r10_map = s2.get(f"{BASE_URL}/customer/tailors")
+    assert r10_map.status_code == 200
+    assert f"Kovai Bespoke Atelier {ts}" in r10_map.text, "Newly registered tailor with place/area must be visible on the map"
+    print("PASS 10: Tailor registration with place & area succeeds and immediately appears on Tamil Nadu map.")
+
+    print("\nALL 10 END-TO-END SYSTEM TESTS PASSED SUCCESSFULLY!")
 
 if __name__ == "__main__":
     run_tests()

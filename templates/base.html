@@ -837,61 +837,6 @@
 
             </div>
 
-
-            <div class="footer-links">
-
-                <a href="{{ url_for('index') }}">
-                    Home
-                </a>
-
-                {% if current_user.is_authenticated %}
-
-                    {% if current_user.role == "customer" %}
-
-                        <a href="{{ url_for('customer.tailors') }}">
-                            Find Tailors
-                        </a>
-
-                        <a href="{{ url_for('customer.dashboard') }}">
-                            Dashboard
-                        </a>
-
-                    {% elif current_user.role == "tailor" %}
-
-                        <a href="{{ url_for('tailor.dashboard') }}">
-                            Dashboard
-                        </a>
-
-                        <a href="{{ url_for('tailor.orders') }}">
-                            Orders
-                        </a>
-
-                    {% elif current_user.role == "admin" %}
-
-                        <a href="{{ url_for('admin.dashboard') }}">
-                            Admin
-                        </a>
-
-                    {% endif %}
-
-                    <a href="{{ url_for('auth.logout') }}">
-                        Logout
-                    </a>
-
-                {% else %}
-
-                    <a href="{{ url_for('auth.login') }}">
-                        Login
-                    </a>
-
-                    <a href="{{ url_for('auth.register') }}">
-                        Register
-                    </a>
-
-                {% endif %}
-
-            </div>
-
         </div>
 
 

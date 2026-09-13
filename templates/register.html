@@ -366,24 +366,120 @@
                     </div>
 
 
-                    <!-- TAILOR SHOP NAME (SHOWN WHEN TAILOR IS SELECTED) -->
-                    <div class="field-group" id="tailorFields" style="display:none;">
+                    <!-- TAILOR SHOP & LOCATION FIELDS (SHOWN WHEN TAILOR IS SELECTED) -->
+                    <div id="tailorFields" style="display:none; margin-top: 10px; padding: 18px; background: rgba(255,255,255,0.05); border: 1.5px solid rgba(129, 140, 248, 0.35); border-radius: 18px;">
 
-                        <label for="shop_name">
-                            Shop / Studio Name
-                        </label>
+                        <div style="font-size: 0.82rem; font-weight: 800; color: #f472b6; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 14px;">
+                            ✂️ Tailor Studio & Tamil Nadu Location
+                        </div>
 
-                        <div class="input-shell">
+                        <!-- Studio Name -->
+                        <div class="field-group">
+                            <label for="shop_name">Shop / Studio Name *</label>
+                            <div class="input-shell">
+                                <span class="input-icon">✂</span>
+                                <input
+                                    type="text"
+                                    id="shop_name"
+                                    name="shop_name"
+                                    value="{{ shop_name or '' }}"
+                                    placeholder="e.g. Royal Atelier & Boutique"
+                                >
+                            </div>
+                        </div>
 
-                            <span class="input-icon">✂</span>
+                        <!-- City / District in Tamil Nadu -->
+                        <div class="field-group">
+                            <label for="city">District / City in Tamil Nadu *</label>
+                            <div class="input-shell">
+                                <span class="input-icon">🏛️</span>
+                                <select
+                                    id="city"
+                                    name="city"
+                                    style="width:100%; height:100%; border:0; outline:0; background:transparent; color:#fff; font-family:inherit; font-size:12px; padding-right:14px; cursor:pointer;"
+                                >
+                                    <option value="Chennai" style="background:#17111d;">Chennai</option>
+                                    <option value="Coimbatore" style="background:#17111d;">Coimbatore</option>
+                                    <option value="Madurai" style="background:#17111d;">Madurai</option>
+                                    <option value="Tiruchirappalli" style="background:#17111d;">Tiruchirappalli (Trichy)</option>
+                                    <option value="Salem" style="background:#17111d;">Salem</option>
+                                    <option value="Erode" style="background:#17111d;">Erode</option>
+                                    <option value="Tirunelveli" style="background:#17111d;">Tirunelveli</option>
+                                    <option value="Kanchipuram" style="background:#17111d;">Kanchipuram</option>
+                                    <option value="Vellore" style="background:#17111d;">Vellore</option>
+                                    <option value="Thanjavur" style="background:#17111d;">Thanjavur</option>
+                                    <option value="Tiruppur" style="background:#17111d;">Tiruppur</option>
+                                    <option value="Dindigul" style="background:#17111d;">Dindigul</option>
+                                    <option value="Ooty" style="background:#17111d;">The Nilgiris (Ooty / Coonoor)</option>
+                                    <option value="Nagercoil" style="background:#17111d;">Kanyakumari (Nagercoil)</option>
+                                    <option value="Karur" style="background:#17111d;">Karur</option>
+                                    <option value="Namakkal" style="background:#17111d;">Namakkal</option>
+                                    <option value="Cuddalore" style="background:#17111d;">Cuddalore</option>
+                                    <option value="Thoothukudi" style="background:#17111d;">Thoothukudi</option>
+                                    <option value="Tamil Nadu" style="background:#17111d;">Other Tamil Nadu District</option>
+                                </select>
+                            </div>
+                        </div>
 
-                            <input
-                                type="text"
-                                id="shop_name"
-                                name="shop_name"
-                                placeholder="e.g. Royal Atelier & Boutique"
-                            >
+                        <!-- Place / Area / Locality -->
+                        <div class="field-group">
+                            <label for="area">Place / Area / Locality * <small style="color: #f472b6;">(Pinpoint on Map)</small></label>
+                            <div class="input-shell">
+                                <span class="input-icon">📍</span>
+                                <input
+                                    type="text"
+                                    id="area"
+                                    name="area"
+                                    value="{{ area or '' }}"
+                                    placeholder="e.g. T. Nagar, Anna Nagar, RS Puram, Thillai Nagar, Fairlands..."
+                                >
+                            </div>
+                        </div>
 
+                        <!-- Full Address -->
+                        <div class="field-group">
+                            <label for="address">Full Studio Street Address</label>
+                            <div class="input-shell">
+                                <span class="input-icon">🏢</span>
+                                <input
+                                    type="text"
+                                    id="address"
+                                    name="address"
+                                    value="{{ address or '' }}"
+                                    placeholder="e.g. 42 Usman Road, Door No. 12"
+                                >
+                            </div>
+                        </div>
+
+                        <!-- Specialization -->
+                        <div class="field-group">
+                            <label for="specialization">Tailoring Specialization *</label>
+                            <div class="input-shell">
+                                <span class="input-icon">🧵</span>
+                                <select
+                                    id="specialization"
+                                    name="specialization"
+                                    style="width:100%; height:100%; border:0; outline:0; background:transparent; color:#fff; font-family:inherit; font-size:12px; padding-right:14px; cursor:pointer;"
+                                >
+                                    <option value="Silk Saree Blouses, Designer Lehengas, Zari Embroidery" style="background:#17111d;">👗 Silk Saree Blouses & Aari Embroidery</option>
+                                    <option value="Bespoke Men's Suits, Tuxedos, Formal Blazers" style="background:#17111d;">👔 Bespoke Men's Suits & Tuxedos</option>
+                                    <option value="Bridal Lehengas, Designer Gowns, Maggam Work" style="background:#17111d;">🥻 Bridal Lehengas & Gowns</option>
+                                    <option value="Kurtas, Dhotis, Traditional Ethnic Wear" style="background:#17111d;">🧵 Kurtas & Ethnic Wear</option>
+                                    <option value="Precision Alterations, Daily Wear, Fitting" style="background:#17111d;">✂️ Alterations & Fitting</option>
+                                    <option value="Custom Tailoring & Alteration Services" style="background:#17111d;">✨ All-Round Custom Tailoring</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Hidden GPS inputs and auto detect button -->
+                        <input type="hidden" id="latitude" name="latitude" value="{{ latitude or '' }}">
+                        <input type="hidden" id="longitude" name="longitude" value="{{ longitude or '' }}">
+
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 10px; flex-wrap: wrap; gap: 8px;">
+                            <button type="button" id="detectLocationBtn" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.35); padding: 7px 14px; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer;">
+                                📍 Auto-Detect My Studio GPS
+                            </button>
+                            <span id="gpsStatusNotice" style="font-size: 11px; color: #a7f3d0; display: none;">✓ Exact GPS Pinpoint Attached</span>
                         </div>
 
                     </div>
@@ -562,6 +658,32 @@ document.addEventListener("DOMContentLoaded", function () {
         roleSelect.addEventListener("change", updateRoleFields);
         updateRoleFields();
 
+    }
+
+    const detectBtn = document.getElementById("detectLocationBtn");
+    const latInput = document.getElementById("latitude");
+    const lngInput = document.getElementById("longitude");
+    const gpsNotice = document.getElementById("gpsStatusNotice");
+
+    if (detectBtn) {
+        detectBtn.addEventListener("click", function() {
+            if ("geolocation" in navigator) {
+                detectBtn.textContent = "🔄 Pinpointing...";
+                navigator.geolocation.getCurrentPosition(function(pos) {
+                    latInput.value = pos.coords.latitude.toFixed(5);
+                    lngInput.value = pos.coords.longitude.toFixed(5);
+                    detectBtn.textContent = "✓ GPS Pinpoint Saved";
+                    if (gpsNotice) {
+                        gpsNotice.textContent = `✓ [${latInput.value}, ${lngInput.value}]`;
+                        gpsNotice.style.display = "inline";
+                    }
+                }, function(err) {
+                    detectBtn.textContent = "📍 GPS Unavailable (Auto Area Resolver Active)";
+                });
+            } else {
+                detectBtn.textContent = "📍 GPS Unavailable (Auto Area Resolver Active)";
+            }
+        });
     }
 
     const registerForm =
