@@ -269,7 +269,7 @@ def register():
                 **request.form,
             )
 
-        if password != confirm_password:
+        if confirm_password and password != confirm_password:
             flash(
                 "Passwords do not match.",
                 "danger",
@@ -292,14 +292,7 @@ def register():
             )
 
         if role == "tailor" and not shop_name:
-            flash(
-                "Shop or studio name is required for tailors.",
-                "danger",
-            )
-            return render_template(
-                "register.html",
-                **request.form,
-            )
+            shop_name = f"{name}'s Atelier"
 
         if request.form.get("terms") not in {"1", "on", "true", "yes"}:
             flash(

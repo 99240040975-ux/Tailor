@@ -1719,3 +1719,141 @@
     }
 
 }
+
+
+/* =========================================================
+   DEMO ACCOUNTS QUICK FILL
+   ========================================================= */
+
+.demo-box {
+    margin-bottom: 22px;
+    padding: 14px 16px;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.035);
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    backdrop-filter: blur(12px);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.demo-box:hover {
+    border-color: rgba(255, 118, 87, 0.35);
+    box-shadow: 0 8px 24px -10px rgba(255, 79, 154, 0.15);
+}
+
+.demo-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 6px;
+    font-size: 11px;
+}
+
+.demo-title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--auth-white);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.demo-icon {
+    font-size: 13px;
+    color: #ffb45c;
+}
+
+.demo-pass {
+    color: var(--auth-muted);
+    font-size: 11px;
+}
+
+.demo-pass strong {
+    color: #53d8c4;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 11px;
+    background: rgba(83, 216, 196, 0.1);
+    padding: 2px 6px;
+    border-radius: 6px;
+}
+
+.demo-buttons {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+.demo-btn {
+    appearance: none;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+    padding: 8px 6px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    text-align: center;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    font-family: inherit;
+}
+
+.demo-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.22);
+    transform: translateY(-2px);
+}
+
+.demo-role-badge {
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 2px 7px;
+    border-radius: 999px;
+    line-height: 1.3;
+}
+
+.badge-customer {
+    background: rgba(83, 216, 196, 0.15);
+    color: #53d8c4;
+    border: 1px solid rgba(83, 216, 196, 0.3);
+}
+
+.badge-tailor {
+    background: rgba(255, 118, 87, 0.15);
+    color: #ff9b58;
+    border: 1px solid rgba(255, 118, 87, 0.3);
+}
+
+.badge-admin {
+    background: rgba(156, 108, 255, 0.15);
+    color: #be9aff;
+    border: 1px solid rgba(156, 108, 255, 0.3);
+}
+
+.demo-email {
+    font-size: 10px;
+    color: var(--auth-white);
+    opacity: 0.85;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+
+@media (max-width: 540px) {
+    .demo-buttons {
+        grid-template-columns: 1fr;
+    }
+    .demo-btn {
+        flex-direction: row;
+        justify-content: space-between;
+        padding: 8px 12px;
+    }
+}

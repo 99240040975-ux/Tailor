@@ -100,6 +100,8 @@ class User(UserMixin, db.Model):
         "Message",
         foreign_keys="Message.sender_id",
         backref="sender",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
         lazy=True,
     )
 
@@ -107,6 +109,8 @@ class User(UserMixin, db.Model):
         "Message",
         foreign_keys="Message.receiver_id",
         backref="receiver",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
         lazy=True,
     )
 

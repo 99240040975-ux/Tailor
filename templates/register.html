@@ -253,6 +253,68 @@
                     </div>
 
 
+                    <!-- CONFIRM PASSWORD -->
+                    <div class="field-group">
+
+                        <label for="confirm_password">
+                            Confirm Password
+                        </label>
+
+                        <div class="input-shell">
+
+                            <span class="input-icon password-icon">
+                                •••
+                            </span>
+
+                            <input
+                                type="password"
+                                id="confirm_password"
+                                name="confirm_password"
+                                placeholder="Confirm your password"
+                                autocomplete="new-password"
+                                minlength="6"
+                                required
+                            >
+
+                            <button
+                                type="button"
+                                class="password-toggle"
+                                id="confirmPasswordToggle"
+                                aria-label="Show confirm password"
+                            >
+                                <span class="eye-open">◉</span>
+                                <span class="eye-closed">◌</span>
+                            </button>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- PHONE (OPTIONAL) -->
+                    <div class="field-group">
+
+                        <label for="phone">
+                            Phone Number <small style="color:var(--auth-muted);font-size:11px;">(Optional)</small>
+                        </label>
+
+                        <div class="input-shell">
+
+                            <span class="input-icon">☎</span>
+
+                            <input
+                                type="tel"
+                                id="phone"
+                                name="phone"
+                                placeholder="e.g. 9876543210"
+                                autocomplete="tel"
+                            >
+
+                        </div>
+
+                    </div>
+
+
                     <!-- ROLE -->
                     <div class="field-group">
 
@@ -296,6 +358,29 @@
                                 </option>
 
                             </select>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- TAILOR SHOP NAME (SHOWN WHEN TAILOR IS SELECTED) -->
+                    <div class="field-group" id="tailorFields" style="display:none;">
+
+                        <label for="shop_name">
+                            Shop / Studio Name
+                        </label>
+
+                        <div class="input-shell">
+
+                            <span class="input-icon">✂</span>
+
+                            <input
+                                type="text"
+                                id="shop_name"
+                                name="shop_name"
+                                placeholder="e.g. Royal Atelier & Boutique"
+                            >
 
                         </div>
 
@@ -424,6 +509,58 @@ document.addEventListener("DOMContentLoaded", function () {
 
     }
 
+    const confirmPasswordInput =
+        document.getElementById("confirm_password");
+
+    const confirmPasswordToggle =
+        document.getElementById("confirmPasswordToggle");
+
+    if (confirmPasswordInput && confirmPasswordToggle) {
+
+        confirmPasswordToggle.addEventListener("click", function () {
+
+            const isPassword =
+                confirmPasswordInput.type === "password";
+
+            confirmPasswordInput.type =
+                isPassword ? "text" : "password";
+
+            confirmPasswordToggle.setAttribute(
+                "aria-label",
+                isPassword
+                    ? "Hide password"
+                    : "Show password"
+            );
+
+            confirmPasswordToggle.classList.toggle(
+                "visible",
+                isPassword
+            );
+
+        });
+
+    }
+
+    const roleSelect =
+        document.getElementById("role");
+
+    const tailorFields =
+        document.getElementById("tailorFields");
+
+    if (roleSelect && tailorFields) {
+
+        function updateRoleFields() {
+            if (roleSelect.value === "tailor") {
+                tailorFields.style.display = "block";
+            } else {
+                tailorFields.style.display = "none";
+            }
+        }
+
+        roleSelect.addEventListener("change", updateRoleFields);
+        updateRoleFields();
+
+    }
 
     const registerForm =
         document.getElementById("registerForm");
@@ -433,7 +570,16 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (registerForm && registerButton) {
 
-        registerForm.addEventListener("submit", function () {
+        registerForm.addEventListener("submit", function (e) {
+
+            if (passwordInput && confirmPasswordInput) {
+                if (passwordInput.value !== confirmPasswordInput.value) {
+                    e.preventDefault();
+                    alert("Passwords do not match. Please verify your password.");
+                    confirmPasswordInput.focus();
+                    return;
+                }
+            }
 
             registerButton.classList.add("loading");
 

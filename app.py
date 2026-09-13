@@ -273,12 +273,66 @@ app = create_app()
 # It does NOT replace or migrate existing tables.
 # Existing schema changes are handled separately by migrations.
 # ----------------------------------------------------------------------
+def ensure_demo_accounts():
+    """Ensure core demo accounts exist with working credentials."""
+    try:
+        from models.tailor import Tailor
+        demos = [
+            ("admin@tailor.com", "Admin User", "admin", "password123", "9876543210"),
+            ("arjun@example.com", "Arjun Kumar", "customer", "password123", "9876543211"),
+            ("priya@example.com", "Priya Sharma", "customer", "password123", "9876543212"),
+            ("ravi@tailor.com", "Ravi Kumar", "tailor", "password123", "9876543213"),
+        ]
+
+        for email, name, role, password, phone in demos:
+            user = User.query.filter_by(email=email).first()
+            if not user:
+                user = User(
+                    name=name,
+                    email=email,
+                    role=role,
+                    phone=phone,
+                    is_active=True,
+                )
+                user.set_password(password)
+                db.session.add(user)
+                db.session.flush()
+            else:
+                user.is_active = True
+                if "placeholder" in (user.password_hash or "") or not user.check_password(password):
+                    user.set_password(password)
+
+            if role == "tailor":
+                tailor = Tailor.query.filter_by(user_id=user.id).first()
+                if not tailor:
+                    tailor = Tailor(
+                        user_id=user.id,
+                        shop_name="Ravi Master Creations",
+                        specialization="Suits, Sherwanis & Designer Wear",
+                        city="Chennai",
+                        experience=8,
+                        price_range="₹500 - ₹3500",
+                        availability="Available",
+                        rating=4.9,
+                        total_reviews=18,
+                        is_verified=True,
+                        is_active=True,
+                    )
+                    db.session.add(tailor)
+
+        db.session.commit()
+    except Exception as exc:
+        db.session.rollback()
+        app.logger.warning("Demo accounts check notice: %s", exc)
+
+
 with app.app_context():
     try:
         db.create_all()
+        ensure_demo_accounts()
 
         app.logger.info(
-            "Database tables checked successfully."
+            "Database tables checked and demo accounts verified successfully."
         )
 
     except Exception as exc:
