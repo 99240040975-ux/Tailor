@@ -14,7 +14,7 @@
         </div>
 
         <div class="glass-card">
-            <form method="POST" action="{{ url_for('reviews.submit_review', order_id=order.id) }}">
+            <form method="POST" action="{{ url_for('reviews.create_review', order_id=order.id) }}">
                 <div class="form-group">
                     <label class="form-label" for="rating">Rating (1 to 5 Stars)</label>
                     <select id="rating" name="rating" class="form-control" style="font-size: 1.1rem; color: #fbbf24;">

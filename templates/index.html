@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}TailorConnect — Tailoring, Reimagined{% endblock %}
+{% block title %}TailorConnect — Your Local Tailor, Reimagined{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/3d-home.css') }}">
@@ -8,320 +8,408 @@
 
 {% block content %}
 
-<section class="hero-3d" id="hero3D">
+<!-- =========================================================
+     HERO — 3D CANVAS SECTION
+========================================================= -->
+<section class="hero-3d-wrap" id="hero3D">
 
-    <!-- 3D CANVAS -->
-    <canvas id="tailorCanvas"></canvas>
+    <!-- Three.js canvas lives behind everything -->
+    <canvas id="tailorCanvas" aria-hidden="true"></canvas>
 
-    <!-- Decorative glow -->
-    <div class="hero-glow hero-glow-one"></div>
-    <div class="hero-glow hero-glow-two"></div>
+    <!-- Soft background gradient blobs -->
+    <div class="bg-blob blob-pink"  aria-hidden="true"></div>
+    <div class="bg-blob blob-blue"  aria-hidden="true"></div>
+    <div class="bg-blob blob-peach" aria-hidden="true"></div>
 
-    <!-- LEFT CONTENT -->
-    <div class="hero-content">
+    <div class="hero-inner">
 
-        <div class="hero-badge">
-            <span class="badge-dot"></span>
-            LOCAL TAILORING • REIMAGINED
-        </div>
+        <!-- ── LEFT COPY ── -->
+        <div class="hero-copy">
 
-        <h1 class="hero-title">
-            Your Perfect Fit
-            <span>Starts Here.</span>
-        </h1>
-
-        <p class="hero-description">
-            Discover trusted local tailors, save your measurements,
-            customize your garments and track every stitch —
-            all in one beautiful platform.
-        </p>
-
-        <div class="hero-actions">
-
-            <button type="button" id="enterTailorButton" class="hero-primary-button">
-
-                <span class="button-text">
-                    Enter TailorConnect
-                </span>
-
-                <span class="button-arrow">
-                    →
-                </span>
-
-            </button>
-
-            <a href="{{ url_for('auth.register') }}" class="hero-secondary-button">
-
-                Create Account
-
-            </a>
-
-        </div>
-
-        <div class="hero-features">
-
-            <div class="hero-feature">
-                <span>✦</span>
-                <p>Find Local Tailors</p>
+            <div class="hero-pill">
+                <span class="pill-dot" aria-hidden="true"></span>
+                TAILORING, DIGITALLY CONNECTED
             </div>
 
-            <div class="hero-feature">
-                <span>✦</span>
-                <p>Save Measurements</p>
+            <h1 class="hero-heading">
+                Clothes made
+                <span class="gradient-text">perfectly<br>for you.</span>
+            </h1>
+
+            <p class="hero-sub">
+                Discover trusted local tailors, save your measurements,
+                discuss your designs, and track every stitch — all in one place.
+            </p>
+
+            <div class="hero-ctas">
+                {% if current_user.is_authenticated %}
+                    {% if current_user.role == "customer" %}
+                        <a href="{{ url_for('customer.dashboard') }}" class="btn-primary">
+                            My Dashboard <span class="btn-arrow">→</span>
+                        </a>
+                        <a href="{{ url_for('customer.tailors') }}" class="btn-ghost">
+                            Find Tailors
+                        </a>
+                    {% elif current_user.role == "tailor" %}
+                        <a href="{{ url_for('tailor.dashboard') }}" class="btn-primary">
+                            Tailor Dashboard <span class="btn-arrow">→</span>
+                        </a>
+                        <a href="{{ url_for('tailor.orders') }}" class="btn-ghost">
+                            View Orders
+                        </a>
+                    {% elif current_user.role == "admin" %}
+                        <a href="{{ url_for('admin.dashboard') }}" class="btn-primary">
+                            Admin Dashboard <span class="btn-arrow">→</span>
+                        </a>
+                    {% endif %}
+                {% else %}
+                    <button class="btn-primary" id="enterTailorButton" type="button">
+                        Get Started <span class="btn-arrow">→</span>
+                    </button>
+                    <a href="{{ url_for('auth.login') }}" class="btn-ghost">
+                        Sign in
+                    </a>
+                {% endif %}
             </div>
 
-            <div class="hero-feature">
-                <span>✦</span>
-                <p>Track Every Stitch</p>
-            </div>
-
-        </div>
-
-    </div>
-
-
-    <!-- RIGHT 3D DISPLAY -->
-    <div class="fashion-stage">
-
-        <div class="stage-ring ring-one"></div>
-        <div class="stage-ring ring-two"></div>
-        <div class="stage-ring ring-three"></div>
-
-        <!-- Floating labels -->
-
-        <div class="floating-label label-measurement">
-            <span class="floating-icon">📏</span>
-
-            <div>
-                <strong>Smart Measurements</strong>
-                <small>Reusable profiles</small>
+            <div class="hero-trust">
+                <span>✓ Personal measurements</span>
+                <span>✓ Order tracking</span>
+                <span>✓ Verified tailors</span>
             </div>
         </div>
 
+        <!-- ── RIGHT STAGE ── -->
+        <div class="fashion-stage" aria-hidden="true">
 
-        <div class="floating-label label-tailor">
-            <span class="floating-icon">🧵</span>
+            <!-- Decorative orbit rings -->
+            <div class="orbit-ring ring-lg"></div>
+            <div class="orbit-ring ring-md"></div>
+            <div class="orbit-ring ring-sm"></div>
 
-            <div>
-                <strong>Local Tailors</strong>
-                <small>Find your perfect match</small>
-            </div>
-        </div>
+            <!-- CSS garment (fallback + overlay on 3D) -->
+            <div class="fashion-object">
 
+                <div class="garment-glow"></div>
 
-        <div class="floating-label label-order">
-            <span class="floating-icon">✂</span>
-
-            <div>
-                <strong>Track Orders</strong>
-                <small>Every stitch, visible</small>
-            </div>
-        </div>
-
-
-        <!-- Main fashion object -->
-
-        <div class="fashion-object">
-
-            <div class="garment-glow"></div>
-
-            <div class="garment">
-
-                <div class="garment-neck"></div>
-
-                <div class="garment-body">
-
-                    <div class="garment-seam seam-left"></div>
-                    <div class="garment-seam seam-right"></div>
-
-                    <div class="garment-button button-one"></div>
-                    <div class="garment-button button-two"></div>
-                    <div class="garment-button button-three"></div>
-
+                <div class="garment">
+                    <div class="sleeve sleeve-left"></div>
+                    <div class="sleeve sleeve-right"></div>
+                    <div class="garment-body">
+                        <div class="garment-neck"></div>
+                        <div class="seam seam-l"></div>
+                        <div class="seam seam-r"></div>
+                        <div class="btn-dot b1"></div>
+                        <div class="btn-dot b2"></div>
+                        <div class="btn-dot b3"></div>
+                    </div>
                 </div>
 
-                <div class="garment-sleeve sleeve-left"></div>
-                <div class="garment-sleeve sleeve-right"></div>
+                <!-- Floating needle -->
+                <div class="needle">
+                    <div class="needle-shaft"></div>
+                    <div class="needle-eye"></div>
+                </div>
 
+                <!-- Floating thread arcs -->
+                <div class="thread-arc arc-a"></div>
+                <div class="thread-arc arc-b"></div>
+                <div class="thread-arc arc-c"></div>
             </div>
 
+            <!-- Info chips -->
+            <div class="info-chip chip-measurements">
+                <div class="chip-icon">📏</div>
+                <div>
+                    <strong>Measurements</strong>
+                    <small>Saved profiles</small>
+                </div>
+            </div>
 
-            <!-- Thread -->
-            <div class="thread thread-one"></div>
-            <div class="thread thread-two"></div>
-            <div class="thread thread-three"></div>
+            <div class="info-chip chip-tailor">
+                <div class="chip-icon">✂️</div>
+                <div>
+                    <strong>Expert Tailors</strong>
+                    <small>Verified nearby</small>
+                </div>
+            </div>
 
+            <div class="info-chip chip-order">
+                <div class="chip-icon">📦</div>
+                <div>
+                    <strong>Live Tracking</strong>
+                    <small>Every stitch</small>
+                </div>
+            </div>
 
-            <!-- Needle -->
-            <div class="needle">
-
-                <div class="needle-metal"></div>
-
-                <div class="needle-eye"></div>
-
+            <!-- Rating badge -->
+            <div class="rating-badge">
+                <span class="badge-star">★</span>
+                <div>
+                    <strong>TRUSTED</strong>
+                    <small>Local Crafters</small>
+                </div>
             </div>
 
         </div>
-
-
-        <!-- Center badge -->
-
-        <div class="fashion-badge">
-
-            <span class="badge-star">✦</span>
-
-            <div>
-                <strong>CRAFTED</strong>
-                <small>JUST FOR YOU</small>
-            </div>
-
-        </div>
-
     </div>
 
-
-    <!-- Bottom scroll indicator -->
-
-    <div class="scroll-indicator">
-
-        <span>Explore</span>
-
-        <div class="scroll-line"></div>
-
+    <!-- Scroll hint -->
+    <div class="scroll-hint" aria-hidden="true">
+        <div class="scroll-bar"></div>
+        <span>SCROLL</span>
     </div>
 
 </section>
 
 
-<!-- ========================================= -->
-<!-- FEATURE PREVIEW -->
-<!-- ========================================= -->
+<!-- =========================================================
+     HOW IT WORKS
+========================================================= -->
+<section class="section-light">
+    <div class="section-inner">
 
-<section class="feature-preview">
+        <div class="section-header text-center">
+            <p class="eyebrow">How it works</p>
+            <h2 class="section-title">
+                Traditional tailoring,<br>
+                <span class="gradient-text">without the friction.</span>
+            </h2>
+            <p class="section-desc">
+                We connect customers and local tailoring professionals
+                through a simple digital workflow.
+            </p>
+        </div>
 
-    <div class="section-heading">
+        <div class="steps-grid">
 
-        <span class="section-eyebrow">
-            THE TAILORCONNECT EXPERIENCE
-        </span>
+            <div class="step-card">
+                <div class="step-icon-wrap" style="--accent:#818cf8">
+                    <span>🔎</span>
+                </div>
+                <div class="step-number">01</div>
+                <h3>Discover</h3>
+                <p>Search local tailors by location, specialisation, availability, and ratings.</p>
+                <div class="step-glow" style="--g:#818cf8"></div>
+            </div>
 
-        <h2>
-            From measurement
-            <span>to masterpiece.</span>
-        </h2>
+            <div class="step-card">
+                <div class="step-icon-wrap" style="--accent:#34d399">
+                    <span>📐</span>
+                </div>
+                <div class="step-number">02</div>
+                <h3>Personalise</h3>
+                <p>Store measurement profiles and communicate your preferred fit and design.</p>
+                <div class="step-glow" style="--g:#34d399"></div>
+            </div>
 
-        <p>
-            Everything you need to create, manage and track
-            your perfect custom garment.
-        </p>
+            <div class="step-card">
+                <div class="step-icon-wrap" style="--accent:#f472b6">
+                    <span>🧵</span>
+                </div>
+                <div class="step-number">03</div>
+                <h3>Track</h3>
+                <p>Follow your order from quotation through stitching, quality check, and delivery.</p>
+                <div class="step-glow" style="--g:#f472b6"></div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+
+<!-- =========================================================
+     FEATURES
+========================================================= -->
+<section class="section-pastel">
+    <div class="section-inner">
+
+        <div class="features-layout">
+
+            <div class="features-copy">
+                <p class="eyebrow">Everything in one place</p>
+                <h2 class="section-title">
+                    A better digital layer<br>
+                    <span class="gradient-text">for local tailoring.</span>
+                </h2>
+                <p class="section-desc">
+                    TailorConnect makes local tailoring easier without
+                    taking away the human relationship between customer
+                    and tailor.
+                </p>
+                {% if not current_user.is_authenticated %}
+                <a href="{{ url_for('auth.register') }}" class="btn-primary mt-btn">
+                    Create your account <span class="btn-arrow">→</span>
+                </a>
+                {% endif %}
+            </div>
+
+            <div class="feat-grid">
+
+                <div class="feat-card" style="--c:#818cf8">
+                    <div class="feat-emoji">📍</div>
+                    <h3>Local discovery</h3>
+                    <p>Connect with registered tailoring professionals in your area.</p>
+                </div>
+
+                <div class="feat-card" style="--c:#34d399">
+                    <div class="feat-emoji">📏</div>
+                    <h3>Measurement vault</h3>
+                    <p>Keep reusable measurement profiles for future clothing orders.</p>
+                </div>
+
+                <div class="feat-card" style="--c:#f472b6">
+                    <div class="feat-emoji">💬</div>
+                    <h3>Direct messaging</h3>
+                    <p>Discuss requirements and designs directly with your tailor.</p>
+                </div>
+
+                <div class="feat-card" style="--c:#fb923c">
+                    <div class="feat-emoji">📦</div>
+                    <h3>Order tracking</h3>
+                    <p>Know exactly where your clothing order stands at every stage.</p>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- =========================================================
+     FEATURED TAILORS
+========================================================= -->
+{% if featured_tailors %}
+<section class="section-light">
+    <div class="section-inner">
+
+        <div class="row-between">
+            <div>
+                <p class="eyebrow">Featured professionals</p>
+                <h2 class="section-title">Meet local tailors</h2>
+            </div>
+            {% if current_user.is_authenticated and current_user.role == "customer" %}
+            <a href="{{ url_for('customer.tailors') }}" class="view-all-link">
+                View all →
+            </a>
+            {% endif %}
+        </div>
+
+        <div class="tailors-grid">
+            {% for tailor in featured_tailors %}
+            <article class="tailor-card">
+                <div class="tailor-banner"></div>
+                <div class="tailor-body">
+                    <div class="tailor-avatar">
+                        {{ tailor.shop_name[:1].upper() if tailor.shop_name else "T" }}
+                    </div>
+                    <div class="tailor-meta">
+                        <div class="tailor-top">
+                            <div>
+                                <h3 class="tailor-name">{{ tailor.shop_name }}</h3>
+                                {% if tailor.specialization %}
+                                <p class="tailor-spec">{{ tailor.specialization }}</p>
+                                {% endif %}
+                            </div>
+                            {% if tailor.is_verified %}
+                            <span class="verified-badge">✓ Verified</span>
+                            {% endif %}
+                        </div>
+                        <div class="tailor-footer">
+                            <span class="tailor-rating">
+                                ★ {{ "%.1f"|format(tailor.rating or 0) }}
+                                <span class="rating-count">({{ tailor.total_reviews or 0 }})</span>
+                            </span>
+                            {% if tailor.city %}
+                            <span class="tailor-city">📍 {{ tailor.city }}</span>
+                            {% endif %}
+                        </div>
+                        {% if tailor.description %}
+                        <p class="tailor-desc">
+                            {{ tailor.description[:110] }}{% if tailor.description|length > 110 %}…{% endif %}
+                        </p>
+                        {% endif %}
+                    </div>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
 
     </div>
+</section>
+{% endif %}
 
 
-    <div class="feature-grid">
+<!-- =========================================================
+     RECENT REVIEWS
+========================================================= -->
+{% if recent_reviews %}
+<section class="section-gradient-dark">
+    <div class="section-inner">
 
-        <div class="feature-card">
-
-            <div class="feature-number">
-                01
-            </div>
-
-            <div class="feature-icon">
-                📍
-            </div>
-
-            <h3>
-                Find Your Tailor
-            </h3>
-
-            <p>
-                Discover registered tailors in your
-                district, town, village or locality.
-            </p>
-
+        <div class="section-header text-center">
+            <p class="eyebrow-light">Customer experiences</p>
+            <h2 class="section-title-light">
+                Built on trust<br>and good work.
+            </h2>
         </div>
 
-
-        <div class="feature-card">
-
-            <div class="feature-number">
-                02
-            </div>
-
-            <div class="feature-icon">
-                📐
-            </div>
-
-            <h3>
-                Save Your Fit
-            </h3>
-
-            <p>
-                Create reusable measurement profiles
-                and keep your perfect fit ready.
-            </p>
-
-        </div>
-
-
-        <div class="feature-card">
-
-            <div class="feature-number">
-                03
-            </div>
-
-            <div class="feature-icon">
-                🧵
-            </div>
-
-            <h3>
-                Track Every Stitch
-            </h3>
-
-            <p>
-                Follow your garment from quotation
-                through stitching to delivery.
-            </p>
-
-        </div>
-
-
-        <div class="feature-card">
-
-            <div class="feature-number">
-                04
-            </div>
-
-            <div class="feature-icon">
-                ✨
-            </div>
-
-            <h3>
-                Wear With Confidence
-            </h3>
-
-            <p>
-                Communicate with your tailor and
-                review your finished experience.
-            </p>
-
+        <div class="reviews-grid">
+            {% for review in recent_reviews %}
+            <article class="review-card">
+                <div class="review-stars">{{ review.stars }}</div>
+                <p class="review-text">
+                    "{% if review.short_comment %}{{ review.short_comment }}{% else %}Great tailoring experience.{% endif %}"
+                </p>
+                <div class="review-footer">
+                    <span class="review-label">{{ review.rating_label }}</span>
+                    <span class="review-date">{{ review.created_at|date }}</span>
+                </div>
+            </article>
+            {% endfor %}
         </div>
 
     </div>
+</section>
+{% endif %}
 
+
+<!-- =========================================================
+     FINAL CTA
+========================================================= -->
+<section class="section-cta">
+    <div class="section-inner text-center">
+
+        <div class="cta-box">
+            <div class="cta-blob" aria-hidden="true"></div>
+            <p class="eyebrow">Ready to start?</p>
+            <h2 class="cta-title">
+                Your perfect fit<br>starts locally.
+            </h2>
+            <p class="cta-sub">
+                Bring the convenience of digital tools to the craft,
+                care, and personal touch of local tailoring.
+            </p>
+            {% if not current_user.is_authenticated %}
+            <div class="cta-actions">
+                <a href="{{ url_for('auth.register') }}" class="btn-primary btn-lg">
+                    Join TailorConnect
+                </a>
+                <a href="{{ url_for('auth.login') }}" class="btn-outline-dark btn-lg">
+                    Sign in
+                </a>
+            </div>
+            {% endif %}
+        </div>
+
+    </div>
 </section>
 
 {% endblock %}
 
-
 {% block extra_js %}
-
-<!-- Three.js -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js">
-</script>
-
-<!-- TailorConnect 3D Homepage -->
-<script src="{{ url_for('static', filename='js/3d-home.js') }}">
-</script>
-
+<!-- Three.js CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"
+        crossorigin="anonymous"></script>
+<script src="{{ url_for('static', filename='js/3d-home.js') }}"></script>
 {% endblock %}

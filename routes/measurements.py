@@ -1,121 +1,479 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
-from flask_login import login_required, current_user
+from flask import (
+    Blueprint,
+    flash,
+    jsonify,
+    redirect,
+    render_template,
+    request,
+    url_for,
+)
+from flask_login import current_user, login_required
+
 from models import db
 from models.measurement import Measurement
 from utils.decorators import customer_required
 from utils.validators import validate_measurement_value
 
-measurements_bp = Blueprint('measurements', __name__)
+
+measurements_bp = Blueprint(
+    "measurements",
+    __name__,
+)
 
 
-@measurements_bp.route('/')
+MEASUREMENT_FIELDS = [
+    "chest",
+    "waist",
+    "hip",
+    "shoulder",
+    "sleeve",
+    "neck",
+    "inseam",
+    "height",
+]
+
+
+def _parse_measurements(
+    form,
+    unit,
+) -> tuple[dict[str, float | None], str | None]:
+    """
+    Validate and convert measurement form values.
+
+    Returns:
+        (values, error)
+    """
+    values: dict[str, float | None] = {}
+
+    for field in MEASUREMENT_FIELDS:
+        raw_value = form.get(
+            field,
+            "",
+        ).strip()
+
+        if not raw_value:
+            values[field] = None
+            continue
+
+        valid, error = validate_measurement_value(
+            field,
+            raw_value,
+            unit,
+        )
+
+        if not valid:
+            return None, error
+
+        try:
+            numeric_value = float(raw_value)
+        except (TypeError, ValueError):
+            return None, (
+                f"{field.title()} must be a valid number."
+            )
+
+        if numeric_value <= 0:
+            return None, (
+                f"{field.title()} must be greater than zero."
+            )
+
+        values[field] = numeric_value
+
+    return values, None
+
+
+def _set_default_profile(measurement):
+    """
+    Make one measurement profile the customer's default
+    and clear the default flag from all other profiles.
+    """
+    Measurement.query.filter(
+        Measurement.customer_id == measurement.customer_id,
+        Measurement.id != measurement.id,
+    ).update(
+        {"is_default": False},
+        synchronize_session=False,
+    )
+
+    measurement.is_default = True
+
+
+# ------------------------------------------------------------
+# Measurement profiles
+# ------------------------------------------------------------
+
+@measurements_bp.route("/")
 @login_required
 @customer_required
 def list_measurements():
-    profiles = Measurement.query.filter_by(customer_id=current_user.id).order_by(Measurement.created_at.desc()).all()
-    return render_template('customer/measurements.html', profiles=profiles)
+    profiles = (
+        Measurement.query
+        .filter_by(customer_id=current_user.id)
+        .order_by(
+            Measurement.is_default.desc(),
+            Measurement.created_at.desc(),
+        )
+        .all()
+    )
+
+    return render_template(
+        "customer/measurements.html",
+        profiles=profiles,
+    )
 
 
-@measurements_bp.route('/add', methods=['GET', 'POST'])
+# ------------------------------------------------------------
+# Add measurement profile
+# ------------------------------------------------------------
+
+@measurements_bp.route(
+    "/add",
+    methods=["GET", "POST"],
+)
 @login_required
 @customer_required
 def add_measurement():
-    if request.method == 'POST':
-        profile_name = request.form.get('profile_name', '').strip()
-        unit = request.form.get('unit', 'inches')
-        notes = request.form.get('notes', '').strip()
+    if request.method == "POST":
+        profile_name = request.form.get(
+            "profile_name",
+            "",
+        ).strip()
+
+        unit = request.form.get(
+            "unit",
+            "inches",
+        ).strip().lower()
+
+        notes = request.form.get(
+            "notes",
+            "",
+        ).strip()
+
+        is_default = (
+            request.form.get("is_default")
+            in {"on", "true", "1", "yes"}
+        )
 
         if not profile_name:
-            flash('Profile name is required (e.g., "Formal Suit", "Daily Wear").', 'danger')
-            return render_template('customer/add_measurement.html', **request.form)
+            flash(
+                "Profile name is required "
+                '(for example, "Formal Suit").',
+                "danger",
+            )
 
-        fields = ['chest', 'waist', 'hip', 'shoulder', 'sleeve', 'neck', 'inseam', 'height']
-        meas_vals = {}
+            return render_template(
+                "customer/add_measurement.html",
+                **request.form,
+            )
 
-        for f in fields:
-            val = request.form.get(f, '').strip()
-            if val:
-                valid, err = validate_measurement_value(f, val, unit)
-                if not valid:
-                    flash(err, 'danger')
-                    return render_template('customer/add_measurement.html', **request.form)
-                try:
-                    meas_vals[f] = float(val)
-                except ValueError:
-                    meas_vals[f] = None
-            else:
-                meas_vals[f] = None
+        if unit not in {
+            "inches",
+            "inch",
+            "cm",
+            "centimeters",
+        }:
+            unit = "inches"
 
-        new_meas = Measurement(
+        measurement_values, error = (
+            _parse_measurements(
+                request.form,
+                unit,
+            )
+        )
+
+        if error:
+            flash(error, "danger")
+
+            return render_template(
+                "customer/add_measurement.html",
+                **request.form,
+            )
+
+        new_measurement = Measurement(
             customer_id=current_user.id,
             profile_name=profile_name,
             unit=unit,
-            notes=notes,
-            **meas_vals
+            notes=notes or None,
+            is_default=False,
+            **measurement_values,
         )
-        db.session.add(new_meas)
+
+        db.session.add(new_measurement)
+        db.session.flush()
+
+        existing_count = (
+            Measurement.query
+            .filter_by(
+                customer_id=current_user.id,
+            )
+            .count()
+        )
+
+        # The first profile automatically becomes default.
+        if is_default or existing_count == 1:
+            _set_default_profile(
+                new_measurement
+            )
+
         db.session.commit()
 
-        flash(f'Measurement profile "{profile_name}" saved successfully! You can reuse it for any order.', 'success')
-        return redirect(url_for('measurements.list_measurements'))
+        flash(
+            f'Measurement profile "{profile_name}" '
+            "saved successfully!",
+            "success",
+        )
 
-    return render_template('customer/add_measurement.html')
+        return redirect(
+            url_for(
+                "measurements.list_measurements"
+            )
+        )
+
+    return render_template(
+        "customer/add_measurement.html"
+    )
 
 
-@measurements_bp.route('/<int:meas_id>/edit', methods=['GET', 'POST'])
+# ------------------------------------------------------------
+# Edit measurement profile
+# ------------------------------------------------------------
+
+@measurements_bp.route(
+    "/<int:meas_id>/edit",
+    methods=["GET", "POST"],
+)
 @login_required
 @customer_required
 def edit_measurement(meas_id):
-    meas = Measurement.query.filter_by(id=meas_id, customer_id=current_user.id).first_or_404()
+    measurement = (
+        Measurement.query
+        .filter_by(
+            id=meas_id,
+            customer_id=current_user.id,
+        )
+        .first_or_404()
+    )
 
-    if request.method == 'POST':
-        profile_name = request.form.get('profile_name', '').strip()
-        unit = request.form.get('unit', 'inches')
-        notes = request.form.get('notes', '').strip()
+    if request.method == "POST":
+        profile_name = request.form.get(
+            "profile_name",
+            "",
+        ).strip()
+
+        unit = request.form.get(
+            "unit",
+            "inches",
+        ).strip().lower()
+
+        notes = request.form.get(
+            "notes",
+            "",
+        ).strip()
+
+        is_default = (
+            request.form.get("is_default")
+            in {"on", "true", "1", "yes"}
+        )
 
         if not profile_name:
-            flash('Profile name is required.', 'danger')
-            return render_template('customer/edit_measurement.html', measurement=meas)
+            flash(
+                "Profile name is required.",
+                "danger",
+            )
 
-        fields = ['chest', 'waist', 'hip', 'shoulder', 'sleeve', 'neck', 'inseam', 'height']
-        for f in fields:
-            val = request.form.get(f, '').strip()
-            if val:
-                valid, err = validate_measurement_value(f, val, unit)
-                if not valid:
-                    flash(err, 'danger')
-                    return render_template('customer/edit_measurement.html', measurement=meas)
-                setattr(meas, f, float(val))
-            else:
-                setattr(meas, f, None)
+            return render_template(
+                "customer/edit_measurement.html",
+                measurement=measurement,
+            )
 
-        meas.profile_name = profile_name
-        meas.unit = unit
-        meas.notes = notes
+        if unit not in {
+            "inches",
+            "inch",
+            "cm",
+            "centimeters",
+        }:
+            unit = "inches"
+
+        measurement_values, error = (
+            _parse_measurements(
+                request.form,
+                unit,
+            )
+        )
+
+        if error:
+            flash(error, "danger")
+
+            return render_template(
+                "customer/edit_measurement.html",
+                measurement=measurement,
+            )
+
+        for field, value in measurement_values.items():
+            setattr(
+                measurement,
+                field,
+                value,
+            )
+
+        measurement.profile_name = (
+            profile_name
+        )
+        measurement.unit = unit
+        measurement.notes = (
+            notes or None
+        )
+
+        if is_default:
+            _set_default_profile(
+                measurement
+            )
+        elif measurement.is_default:
+            # Keep the current profile default unless
+            # another profile is explicitly selected.
+            measurement.is_default = True
 
         db.session.commit()
-        flash(f'Measurement profile "{profile_name}" updated successfully!', 'success')
-        return redirect(url_for('measurements.list_measurements'))
 
-    return render_template('customer/edit_measurement.html', measurement=meas)
+        flash(
+            f'Measurement profile "{profile_name}" '
+            "updated successfully!",
+            "success",
+        )
+
+        return redirect(
+            url_for(
+                "measurements.list_measurements"
+            )
+        )
+
+    return render_template(
+        "customer/edit_measurement.html",
+        measurement=measurement,
+    )
 
 
-@measurements_bp.route('/<int:meas_id>/delete', methods=['POST'])
+# ------------------------------------------------------------
+# Set default profile
+# ------------------------------------------------------------
+
+@measurements_bp.route(
+    "/<int:meas_id>/set-default",
+    methods=["POST"],
+)
+@login_required
+@customer_required
+def set_default_measurement(meas_id):
+    measurement = (
+        Measurement.query
+        .filter_by(
+            id=meas_id,
+            customer_id=current_user.id,
+        )
+        .first_or_404()
+    )
+
+    _set_default_profile(
+        measurement
+    )
+
+    db.session.commit()
+
+    flash(
+        f'"{measurement.profile_name}" is now '
+        "your default measurement profile.",
+        "success",
+    )
+
+    return redirect(
+        url_for(
+            "measurements.list_measurements"
+        )
+    )
+
+
+# ------------------------------------------------------------
+# Delete measurement profile
+# ------------------------------------------------------------
+
+@measurements_bp.route(
+    "/<int:meas_id>/delete",
+    methods=["POST"],
+)
 @login_required
 @customer_required
 def delete_measurement(meas_id):
-    meas = Measurement.query.filter_by(id=meas_id, customer_id=current_user.id).first_or_404()
-    db.session.delete(meas)
+    measurement = (
+        Measurement.query
+        .filter_by(
+            id=meas_id,
+            customer_id=current_user.id,
+        )
+        .first_or_404()
+    )
+
+    was_default = measurement.is_default
+
+    db.session.delete(measurement)
+    db.session.flush()
+
+    # If the deleted profile was default, automatically
+    # promote the newest remaining profile.
+    if was_default:
+        replacement = (
+            Measurement.query
+            .filter_by(
+                customer_id=current_user.id,
+            )
+            .order_by(
+                Measurement.created_at.desc()
+            )
+            .first()
+        )
+
+        if replacement:
+            replacement.is_default = True
+
     db.session.commit()
-    flash('Measurement profile deleted.', 'info')
-    return redirect(url_for('measurements.list_measurements'))
+
+    flash(
+        "Measurement profile deleted.",
+        "info",
+    )
+
+    return redirect(
+        url_for(
+            "measurements.list_measurements"
+        )
+    )
 
 
-@measurements_bp.route('/<int:meas_id>/json')
+# ------------------------------------------------------------
+# Measurement JSON
+# ------------------------------------------------------------
+
+@measurements_bp.route(
+    "/<int:meas_id>/json"
+)
 @login_required
 def get_measurement_json(meas_id):
-    meas = Measurement.query.filter_by(id=meas_id).first_or_404()
-    # Check permissions
-    if meas.customer_id != current_user.id and not current_user.is_tailor and not current_user.is_admin:
-        return jsonify({'error': 'Unauthorized'}), 403
-    return jsonify(meas.to_dict())
+    measurement = (
+        Measurement.query
+        .filter_by(id=meas_id)
+        .first_or_404()
+    )
+
+    # Customers can only access their own measurements.
+    # Tailors and admins may access a measurement when
+    # needed for order fulfillment.
+    if (
+        measurement.customer_id != current_user.id
+        and not current_user.is_tailor
+        and not current_user.is_admin
+    ):
+        return jsonify({
+            "error": "Unauthorized"
+        }), 403
+
+    return jsonify(
+        measurement.to_dict()
+    )

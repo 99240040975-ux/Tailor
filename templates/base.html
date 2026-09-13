@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
     <meta charset="UTF-8">
 
     <meta
@@ -16,15 +15,12 @@
 
     <meta
         name="theme-color"
-        content="#09070d"
+        content="#0b0b0f"
     >
 
-    <title>
-        {% block title %}TailorConnect{% endblock %}
-    </title>
+    <title>{% block title %}TailorConnect{% endblock %}</title>
 
-
-    <!-- Google Fonts -->
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
@@ -33,22 +29,385 @@
         rel="stylesheet"
     >
 
-
     <!-- Global stylesheet -->
     <link
         rel="stylesheet"
         href="{{ url_for('static', filename='css/style.css') }}"
     >
 
+    <style>
+        /* ── Site header ───────────────────────────────── */
+        .site-header {
+            position: sticky;
+            top: 0;
+            z-index: 200;
+            background: rgba(255,255,255,0.85);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border-bottom: 1px solid rgba(129,140,248,0.14);
+            transition: box-shadow 0.25s ease, background 0.25s ease;
+        }
+        .site-header.scrolled {
+            background: rgba(255,255,255,0.97);
+            box-shadow: 0 4px 28px rgba(100,60,180,0.10);
+        }
+        .site-nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1.5rem;
+            max-width: 1360px;
+            margin: 0 auto;
+            padding: 0 5%;
+            height: 66px;
+        }
+        /* logo */
+        .site-logo {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: inherit;
+        }
+        .logo-mark {
+            position: relative;
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #f472b6, #818cf8);
+            display: grid;
+            place-items: center;
+            overflow: hidden;
+        }
+        .logo-thread {
+            position: absolute;
+            width: 20px;
+            height: 2px;
+            background: rgba(255,255,255,0.7);
+            border-radius: 2px;
+            transform: rotate(-30deg);
+        }
+        .logo-needle {
+            position: absolute;
+            width: 2px;
+            height: 18px;
+            background: rgba(255,255,255,0.9);
+            border-radius: 2px;
+            transform: rotate(20deg);
+        }
+        .logo-text {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.1;
+        }
+        .logo-text strong {
+            font-size: 13px;
+            font-weight: 900;
+            letter-spacing: 2px;
+            color: #1e1030;
+        }
+        .logo-text span {
+            font-size: 9px;
+            letter-spacing: 2.5px;
+            color: #818cf8;
+            font-weight: 700;
+        }
+        /* desktop links */
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        .nav-link {
+            padding: 7px 14px;
+            border-radius: 10px;
+            color: #4b3f62;
+            font-size: 0.88rem;
+            font-weight: 700;
+            text-decoration: none;
+            transition: background 0.2s, color 0.2s;
+        }
+        .nav-link:hover {
+            background: rgba(129,140,248,0.10);
+            color: #818cf8;
+        }
+        .nav-user {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            border-radius: 10px;
+            background: rgba(129,140,248,0.08);
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #4b3f62;
+        }
+        .nav-notification {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 20px;
+            height: 20px;
+            padding: 0 5px;
+            border-radius: 999px;
+            background: linear-gradient(135deg, #f472b6, #818cf8);
+            color: #fff;
+            font-size: 10px;
+            font-weight: 800;
+        }
+        .nav-button {
+            display: inline-flex;
+            align-items: center;
+            padding: 9px 18px;
+            border-radius: 11px;
+            background: linear-gradient(135deg, #f472b6, #818cf8);
+            color: #fff;
+            font-size: 0.88rem;
+            font-weight: 800;
+            text-decoration: none;
+            transition: opacity 0.2s, transform 0.2s;
+            box-shadow: 0 6px 20px rgba(244,114,182,0.28);
+        }
+        .nav-button:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+            color: #fff;
+        }
+        /* mobile menu button */
+        .mobile-menu-button {
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            gap: 5px;
+            width: 38px;
+            height: 38px;
+            padding: 6px;
+            border: 1.5px solid rgba(129,140,248,0.22);
+            border-radius: 10px;
+            background: rgba(255,255,255,0.70);
+            cursor: pointer;
+        }
+        .mobile-menu-button span {
+            display: block;
+            width: 100%;
+            height: 2px;
+            border-radius: 2px;
+            background: #4b3f62;
+            transition: transform 0.25s ease, opacity 0.25s ease;
+        }
+        .mobile-menu-button.active span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+        .mobile-menu-button.active span:nth-child(2) { opacity: 0; }
+        .mobile-menu-button.active span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+        /* mobile nav */
+        .mobile-nav {
+            display: none;
+            flex-direction: column;
+            gap: 4px;
+            padding: 0.75rem 5% 1rem;
+            background: rgba(255,255,255,0.97);
+            border-top: 1px solid rgba(129,140,248,0.12);
+        }
+        .mobile-nav.open { display: flex; }
+        .mobile-nav-link {
+            padding: 10px 14px;
+            border-radius: 10px;
+            color: #4b3f62;
+            font-size: 0.92rem;
+            font-weight: 700;
+            text-decoration: none;
+        }
+        .mobile-nav-link:hover { background: rgba(129,140,248,0.10); color: #818cf8; }
+        .mobile-user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            border-radius: 10px;
+            background: rgba(129,140,248,0.08);
+            font-size: 0.88rem;
+        }
+        .mobile-user-name { font-weight: 700; color: #1e1030; }
+        .mobile-notification {
+            padding: 2px 8px;
+            border-radius: 999px;
+            background: linear-gradient(135deg, #f472b6, #818cf8);
+            color: #fff;
+            font-size: 10px;
+            font-weight: 800;
+        }
+        .mobile-nav-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 6px;
+            padding: 11px 18px;
+            border-radius: 11px;
+            background: linear-gradient(135deg, #f472b6, #818cf8);
+            color: #fff;
+            font-size: 0.9rem;
+            font-weight: 800;
+            text-decoration: none;
+        }
+        @media (max-width: 820px) {
+            .nav-links        { display: none; }
+            .mobile-menu-button { display: flex; }
+        }
+        /* ── Flash messages ─────────────────────────────── */
+        .global-flashes {
+            position: fixed;
+            top: 5rem;
+            right: 1rem;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+            width: min(360px, calc(100% - 2rem));
+        }
+        .global-flash {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 12px 40px 12px 14px;
+            border-radius: 14px;
+            border: 1.5px solid rgba(129,140,248,0.18);
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(16px);
+            box-shadow: 0 12px 35px rgba(100,60,180,0.12);
+            font-size: 0.88rem;
+            color: #1e1030;
+            position: relative;
+            animation: flashIn 0.3s ease;
+        }
+        @keyframes flashIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to   { opacity: 1; transform: translateX(0); }
+        }
+        .global-flash.closing {
+            animation: flashOut 0.25s ease forwards;
+        }
+        @keyframes flashOut {
+            to { opacity: 0; transform: translateX(20px); }
+        }
+        .global-flash.success { border-color: #6ee7b7; }
+        .global-flash.danger,
+        .global-flash.error   { border-color: #fca5a5; }
+        .global-flash.warning { border-color: #fcd34d; }
+        .flash-symbol {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: rgba(129,140,248,0.14);
+            font-size: 12px;
+            font-weight: 800;
+            flex-shrink: 0;
+        }
+        .flash-close {
+            position: absolute;
+            top: 9px;
+            right: 10px;
+            border: none;
+            background: transparent;
+            color: #b8aecb;
+            font-size: 1.1rem;
+            cursor: pointer;
+            line-height: 1;
+        }
+        .flash-close:hover { color: #4b3f62; }
+        /* ── Main content ───────────────────────────────── */
+        .main-content { min-height: 60vh; }
+        /* ── Page loader ────────────────────────────────── */
+        .page-loader {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,0.96);
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .page-loader.hidden { opacity: 0; visibility: hidden; }
+        .loader-mark {
+            position: relative;
+            width: 44px;
+            height: 44px;
+        }
+        .loader-mark span {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 3px solid transparent;
+        }
+        .loader-mark span:nth-child(1) {
+            border-top-color: #f472b6;
+            animation: loaderSpin 0.8s linear infinite;
+        }
+        .loader-mark span:nth-child(2) {
+            border-bottom-color: #818cf8;
+            animation: loaderSpin 1.2s linear infinite reverse;
+        }
+        @keyframes loaderSpin { to { transform: rotate(360deg); } }
+        /* ── Footer ─────────────────────────────────────── */
+        .site-footer {
+            background: #f8f4ff;
+            border-top: 1px solid rgba(129,140,248,0.14);
+        }
+        .footer-inner {
+            max-width: 1360px;
+            margin: 0 auto;
+            padding: 2.8rem 5%;
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+        .footer-brand p {
+            margin: 0.6rem 0 0;
+            max-width: 260px;
+            color: #6b5c7a;
+            font-size: 0.85rem;
+            line-height: 1.7;
+        }
+        .footer-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem 1.4rem;
+            align-items: center;
+        }
+        .footer-links a {
+            color: #4b3f62;
+            font-size: 0.88rem;
+            font-weight: 700;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .footer-links a:hover { color: #818cf8; }
+        .footer-bottom {
+            max-width: 1360px;
+            margin: 0 auto;
+            padding: 1rem 5%;
+            border-top: 1px solid rgba(129,140,248,0.10);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            color: #9688a5;
+            font-size: 0.8rem;
+        }
+    </style>
 
     {% block extra_css %}{% endblock %}
-
 </head>
-
 
 <body>
 
-    <!-- Page loading layer -->
+    <!-- Page loader -->
     <div
         class="page-loader"
         id="pageLoader"
@@ -61,20 +420,26 @@
     </div>
 
 
-    <!-- Navigation -->
+    <!-- =========================
+         NAVIGATION
+    ========================== -->
+
     {% block navbar %}
 
-    <header class="site-header">
+    <header class="site-header" id="siteHeader">
 
-        <nav class="site-nav">
+        <nav
+            class="site-nav"
+            aria-label="Primary navigation"
+        >
 
+            <!-- Brand -->
             <a
-                href="/"
+                href="{{ url_for('index') }}"
                 class="site-logo"
                 aria-label="TailorConnect home"
             >
-
-                <span class="logo-mark">
+                <span class="logo-mark" aria-hidden="true">
                     <span class="logo-thread"></span>
                     <span class="logo-needle"></span>
                 </span>
@@ -83,13 +448,16 @@
                     <strong>TAILOR</strong>
                     <span>CONNECT</span>
                 </span>
-
             </a>
 
 
+            <!-- Desktop navigation -->
             <div class="nav-links">
 
-                <a href="/" class="nav-link">
+                <a
+                    href="{{ url_for('index') }}"
+                    class="nav-link"
+                >
                     Home
                 </a>
 
@@ -98,34 +466,75 @@
                     {% if current_user.role == "customer" %}
 
                         <a
-                            href="/customer/dashboard"
+                            href="{{ url_for('customer.dashboard') }}"
                             class="nav-link"
                         >
                             Dashboard
+                        </a>
+
+                        <a
+                            href="{{ url_for('customer.tailors') }}"
+                            class="nav-link"
+                        >
+                            Find Tailors
                         </a>
 
                     {% elif current_user.role == "tailor" %}
 
                         <a
-                            href="/tailor/dashboard"
+                            href="{{ url_for('tailor.dashboard') }}"
                             class="nav-link"
                         >
                             Dashboard
+                        </a>
+
+                        <a
+                            href="{{ url_for('tailor.orders') }}"
+                            class="nav-link"
+                        >
+                            Orders
                         </a>
 
                     {% elif current_user.role == "admin" %}
 
                         <a
-                            href="/admin/dashboard"
+                            href="{{ url_for('admin.dashboard') }}"
                             class="nav-link"
                         >
                             Dashboard
                         </a>
 
+                        <a
+                            href="{{ url_for('admin.users') }}"
+                            class="nav-link"
+                        >
+                            Users
+                        </a>
+
                     {% endif %}
 
+
+                    <!-- User area -->
+                    <div class="nav-user">
+
+                        <span class="nav-user-name">
+                            {{ current_user.name }}
+                        </span>
+
+                        {% if unread_messages_count %}
+                            <span
+                                class="nav-notification"
+                                aria-label="{{ unread_messages_count }} unread messages"
+                            >
+                                {{ unread_messages_count }}
+                            </span>
+                        {% endif %}
+
+                    </div>
+
+
                     <a
-                        href="/logout"
+                        href="{{ url_for('auth.logout') }}"
                         class="nav-button"
                     >
                         Logout
@@ -152,13 +561,14 @@
             </div>
 
 
-            <!-- Mobile menu button -->
+            <!-- Mobile menu -->
             <button
                 class="mobile-menu-button"
                 id="mobileMenuButton"
                 type="button"
                 aria-label="Open navigation"
                 aria-expanded="false"
+                aria-controls="mobileNav"
             >
                 <span></span>
                 <span></span>
@@ -174,7 +584,10 @@
             id="mobileNav"
         >
 
-            <a href="/" class="mobile-nav-link">
+            <a
+                href="{{ url_for('index') }}"
+                class="mobile-nav-link"
+            >
                 Home
             </a>
 
@@ -183,34 +596,67 @@
                 {% if current_user.role == "customer" %}
 
                     <a
-                        href="/customer/dashboard"
+                        href="{{ url_for('customer.dashboard') }}"
                         class="mobile-nav-link"
                     >
                         Dashboard
+                    </a>
+
+                    <a
+                        href="{{ url_for('customer.tailors') }}"
+                        class="mobile-nav-link"
+                    >
+                        Find Tailors
                     </a>
 
                 {% elif current_user.role == "tailor" %}
 
                     <a
-                        href="/tailor/dashboard"
+                        href="{{ url_for('tailor.dashboard') }}"
                         class="mobile-nav-link"
                     >
                         Dashboard
+                    </a>
+
+                    <a
+                        href="{{ url_for('tailor.orders') }}"
+                        class="mobile-nav-link"
+                    >
+                        Orders
                     </a>
 
                 {% elif current_user.role == "admin" %}
 
                     <a
-                        href="/admin/dashboard"
+                        href="{{ url_for('admin.dashboard') }}"
                         class="mobile-nav-link"
                     >
                         Dashboard
                     </a>
 
+                    <a
+                        href="{{ url_for('admin.users') }}"
+                        class="mobile-nav-link"
+                    >
+                        Users
+                    </a>
+
                 {% endif %}
 
+                <div class="mobile-user-info">
+                    <span class="mobile-user-name">
+                        {{ current_user.name }}
+                    </span>
+
+                    {% if unread_messages_count %}
+                        <span class="mobile-notification">
+                            {{ unread_messages_count }} unread
+                        </span>
+                    {% endif %}
+                </div>
+
                 <a
-                    href="/logout"
+                    href="{{ url_for('auth.logout') }}"
                     class="mobile-nav-button"
                 >
                     Logout
@@ -241,7 +687,10 @@
     {% endblock %}
 
 
-    <!-- Flash messages -->
+    <!-- =========================
+         FLASH MESSAGES
+    ========================== -->
+
     {% with messages = get_flashed_messages(with_categories=true) %}
 
         {% if messages %}
@@ -249,18 +698,25 @@
             <div
                 class="global-flashes"
                 id="globalFlashes"
+                aria-live="polite"
             >
 
                 {% for category, message in messages %}
 
                     <div
                         class="global-flash {{ category }}"
+                        role="alert"
                     >
 
-                        <span class="flash-symbol">
+                        <span
+                            class="flash-symbol"
+                            aria-hidden="true"
+                        >
                             {% if category == "success" %}
                                 ✓
                             {% elif category == "danger" or category == "error" %}
+                                !
+                            {% elif category == "warning" %}
                                 !
                             {% else %}
                                 •
@@ -290,7 +746,10 @@
     {% endwith %}
 
 
-    <!-- Main page content -->
+    <!-- =========================
+         MAIN CONTENT
+    ========================== -->
+
     <main
         id="mainContent"
         class="main-content"
@@ -301,7 +760,10 @@
     </main>
 
 
-    <!-- Footer -->
+    <!-- =========================
+         FOOTER
+    ========================== -->
+
     {% block footer %}
 
     <footer class="site-footer">
@@ -311,11 +773,10 @@
             <div class="footer-brand">
 
                 <a
-                    href="/"
+                    href="{{ url_for('index') }}"
                     class="site-logo"
                 >
-
-                    <span class="logo-mark">
+                    <span class="logo-mark" aria-hidden="true">
                         <span class="logo-thread"></span>
                         <span class="logo-needle"></span>
                     </span>
@@ -324,7 +785,6 @@
                         <strong>TAILOR</strong>
                         <span>CONNECT</span>
                     </span>
-
                 </a>
 
                 <p>
@@ -337,13 +797,41 @@
 
             <div class="footer-links">
 
-                <a href="/">
+                <a href="{{ url_for('index') }}">
                     Home
                 </a>
 
                 {% if current_user.is_authenticated %}
 
-                    <a href="/logout">
+                    {% if current_user.role == "customer" %}
+
+                        <a href="{{ url_for('customer.tailors') }}">
+                            Find Tailors
+                        </a>
+
+                        <a href="{{ url_for('customer.dashboard') }}">
+                            Dashboard
+                        </a>
+
+                    {% elif current_user.role == "tailor" %}
+
+                        <a href="{{ url_for('tailor.dashboard') }}">
+                            Dashboard
+                        </a>
+
+                        <a href="{{ url_for('tailor.orders') }}">
+                            Orders
+                        </a>
+
+                    {% elif current_user.role == "admin" %}
+
+                        <a href="{{ url_for('admin.dashboard') }}">
+                            Admin
+                        </a>
+
+                    {% endif %}
+
+                    <a href="{{ url_for('auth.logout') }}">
                         Logout
                     </a>
 
@@ -367,7 +855,7 @@
         <div class="footer-bottom">
 
             <span>
-                © {{ 2026 }} TailorConnect
+                © {{ now.year if now else 2026 }} TailorConnect
             </span>
 
             <span>
@@ -386,115 +874,199 @@
         src="{{ url_for('static', filename='js/app.js') }}"
     ></script>
 
-
     {% block extra_js %}{% endblock %}
 
 
     <!-- Shared UI behaviour -->
     <script>
+        document.addEventListener("DOMContentLoaded", function () {
 
-        document.addEventListener(
-            "DOMContentLoaded",
-            function () {
+            /* =========================
+               PAGE LOADER
+            ========================== */
 
-                /* Page loader */
+            const loader = document.getElementById("pageLoader");
 
-                const loader =
-                    document.getElementById("pageLoader");
-
-                if (loader) {
-
-                    setTimeout(function () {
-
-                        loader.classList.add("hidden");
-
-                    }, 350);
-
-                }
+            if (loader) {
+                window.setTimeout(function () {
+                    loader.classList.add("hidden");
+                }, 350);
+            }
 
 
-                /* Mobile navigation */
+            /* =========================
+               MOBILE NAVIGATION
+            ========================== */
 
-                const menuButton =
-                    document.getElementById(
-                        "mobileMenuButton"
-                    );
+            const menuButton =
+                document.getElementById("mobileMenuButton");
 
-                const mobileNav =
-                    document.getElementById(
-                        "mobileNav"
-                    );
+            const mobileNav =
+                document.getElementById("mobileNav");
 
-                if (menuButton && mobileNav) {
+            if (menuButton && mobileNav) {
 
-                    menuButton.addEventListener(
-                        "click",
-                        function () {
+                menuButton.addEventListener(
+                    "click",
+                    function () {
 
-                            const open =
-                                mobileNav.classList.toggle(
-                                    "open"
-                                );
+                        const isOpen =
+                            mobileNav.classList.toggle("open");
 
-                            menuButton.classList.toggle(
-                                "active",
-                                open
-                            );
+                        menuButton.classList.toggle(
+                            "active",
+                            isOpen
+                        );
 
-                            menuButton.setAttribute(
-                                "aria-expanded",
-                                String(open)
-                            );
+                        menuButton.setAttribute(
+                            "aria-expanded",
+                            String(isOpen)
+                        );
 
-                        }
-                    );
-
-                }
+                        menuButton.setAttribute(
+                            "aria-label",
+                            isOpen
+                                ? "Close navigation"
+                                : "Open navigation"
+                        );
+                    }
+                );
 
 
-                /* Flash close */
+                /* Close mobile menu after navigation */
 
-                const flashCloseButtons =
-                    document.querySelectorAll(
-                        ".flash-close"
-                    );
+                mobileNav
+                    .querySelectorAll("a")
+                    .forEach(function (link) {
 
-                flashCloseButtons.forEach(
-                    function (button) {
-
-                        button.addEventListener(
+                        link.addEventListener(
                             "click",
                             function () {
 
-                                const flash =
-                                    button.closest(
-                                        ".global-flash"
-                                    );
+                                mobileNav.classList.remove("open");
 
-                                if (flash) {
+                                menuButton.classList.remove("active");
 
-                                    flash.classList.add(
-                                        "closing"
-                                    );
+                                menuButton.setAttribute(
+                                    "aria-expanded",
+                                    "false"
+                                );
 
-                                    setTimeout(
-                                        function () {
-                                            flash.remove();
-                                        },
-                                        250
-                                    );
-
-                                }
-
+                                menuButton.setAttribute(
+                                    "aria-label",
+                                    "Open navigation"
+                                );
                             }
+                        );
+
+                    });
+            }
+
+
+            /* =========================
+               FLASH MESSAGE CLOSE
+            ========================== */
+
+            const flashCloseButtons =
+                document.querySelectorAll(".flash-close");
+
+            flashCloseButtons.forEach(function (button) {
+
+                button.addEventListener(
+                    "click",
+                    function () {
+
+                        const flash =
+                            button.closest(".global-flash");
+
+                        if (!flash) {
+                            return;
+                        }
+
+                        flash.classList.add("closing");
+
+                        window.setTimeout(
+                            function () {
+                                flash.remove();
+                            },
+                            250
                         );
 
                     }
                 );
 
-            }
-        );
+            });
 
+
+            /* =========================
+               AUTO HIDE FLASHES
+            ========================== */
+
+            document
+                .querySelectorAll(
+                    ".global-flash.success"
+                )
+                .forEach(function (flash) {
+
+                    window.setTimeout(
+                        function () {
+
+                            if (
+                                document.body.contains(
+                                    flash
+                                )
+                            ) {
+
+                                flash.classList.add(
+                                    "closing"
+                                );
+
+                                window.setTimeout(
+                                    function () {
+                                        flash.remove();
+                                    },
+                                    250
+                                );
+
+                            }
+
+                        },
+                        5000
+                    );
+
+                });
+
+
+            /* =========================
+               HEADER SCROLL STATE
+            ========================== */
+
+            const header =
+                document.getElementById("siteHeader");
+
+            if (header) {
+
+                const updateHeader =
+                    function () {
+
+                        if (window.scrollY > 12) {
+                            header.classList.add("scrolled");
+                        } else {
+                            header.classList.remove("scrolled");
+                        }
+
+                    };
+
+                updateHeader();
+
+                window.addEventListener(
+                    "scroll",
+                    updateHeader,
+                    { passive: true }
+                );
+            }
+
+        });
     </script>
 
 </body>

@@ -1,40 +1,91 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash
-from flask_login import login_required, current_user
+from flask import Blueprint, flash, redirect, render_template, request, url_for
+from flask_login import current_user, login_required
+
 from models import db
-from models.tailor import Tailor
+from models.message import Message
 from models.order import Order
 from models.review import Review
-from models.message import Message
-from models.user import User
+from models.tailor import Tailor
 from utils.decorators import tailor_required
 from utils.file_upload import save_uploaded_file
 
-tailor_bp = Blueprint('tailor', __name__)
+
+tailor_bp = Blueprint("tailor", __name__)
 
 
-@tailor_bp.route('/dashboard')
+# ------------------------------------------------------------
+# Dashboard
+# ------------------------------------------------------------
+
+@tailor_bp.route("/dashboard")
 @login_required
 @tailor_required
 def dashboard():
     tailor = current_user.tailor_profile
+
     if not tailor:
-        flash('Please complete your tailor profile.', 'warning')
-        return redirect(url_for('tailor.edit_profile'))
+        flash(
+            "Please complete your tailor profile.",
+            "warning",
+        )
+        return redirect(
+            url_for("tailor.edit_profile")
+        )
 
-    orders = Order.query.filter_by(tailor_id=tailor.id).order_by(Order.created_at.desc()).all()
+    orders = (
+        Order.query
+        .filter_by(tailor_id=tailor.id)
+        .order_by(Order.created_at.desc())
+        .all()
+    )
 
-    pending_count = sum(1 for o in orders if o.status == 'pending')
-    active_count = sum(1 for o in orders if o.status in ['confirmed', 'cutting', 'stitching', 'alteration', 'quality_check'])
-    ready_count = sum(1 for o in orders if o.status == 'ready')
-    completed_count = sum(1 for o in orders if o.status == 'delivered')
+    pending_count = sum(
+        1 for order in orders
+        if order.status == "pending"
+    )
 
-    total_revenue = sum(o.quotation for o in orders if o.status == 'delivered' and o.quotation)
+    active_statuses = {
+        "confirmed",
+        "cutting",
+        "stitching",
+        "alteration",
+        "quality_check",
+    }
+
+    active_count = sum(
+        1 for order in orders
+        if order.status in active_statuses
+    )
+
+    ready_count = sum(
+        1 for order in orders
+        if order.status == "ready"
+    )
+
+    completed_count = sum(
+        1 for order in orders
+        if order.status == "delivered"
+    )
+
+    total_revenue = sum(
+        float(order.quotation or 0)
+        for order in orders
+        if order.status == "delivered"
+        and order.quotation is not None
+    )
 
     recent_orders = orders[:6]
-    recent_reviews = Review.query.filter_by(tailor_id=tailor.id).order_by(Review.created_at.desc()).limit(4).all()
+
+    recent_reviews = (
+        Review.query
+        .filter_by(tailor_id=tailor.id)
+        .order_by(Review.created_at.desc())
+        .limit(4)
+        .all()
+    )
 
     return render_template(
-        'tailor/dashboard.html',
+        "tailor/dashboard.html",
         tailor=tailor,
         pending_count=pending_count,
         active_count=active_count,
@@ -42,114 +93,356 @@ def dashboard():
         completed_count=completed_count,
         total_revenue=total_revenue,
         recent_orders=recent_orders,
-        recent_reviews=recent_reviews
+        recent_reviews=recent_reviews,
     )
 
 
-@tailor_bp.route('/profile')
+# ------------------------------------------------------------
+# Tailor profile
+# ------------------------------------------------------------
+
+@tailor_bp.route("/profile")
 @login_required
 @tailor_required
 def profile():
     tailor = current_user.tailor_profile
+
     if not tailor:
-        return redirect(url_for('tailor.edit_profile'))
-    reviews = Review.query.filter_by(tailor_id=tailor.id).order_by(Review.created_at.desc()).all()
-    return render_template('tailor/profile.html', tailor=tailor, reviews=reviews)
+        return redirect(
+            url_for("tailor.edit_profile")
+        )
+
+    reviews = (
+        Review.query
+        .filter_by(tailor_id=tailor.id)
+        .order_by(Review.created_at.desc())
+        .all()
+    )
+
+    return render_template(
+        "tailor/profile.html",
+        tailor=tailor,
+        reviews=reviews,
+    )
 
 
-@tailor_bp.route('/edit_profile', methods=['GET', 'POST'])
+# ------------------------------------------------------------
+# Edit tailor profile
+# ------------------------------------------------------------
+
+@tailor_bp.route(
+    "/edit_profile",
+    methods=["GET", "POST"],
+)
 @login_required
 @tailor_required
 def edit_profile():
     tailor = current_user.tailor_profile
+
     if not tailor:
-        tailor = Tailor(user_id=current_user.id, shop_name=f"{current_user.name}'s Tailoring")
+        tailor = Tailor(
+            user_id=current_user.id,
+            shop_name=(
+                f"{current_user.name}'s Tailoring"
+            ),
+            specialization=(
+                "Custom Tailoring & Alterations"
+            ),
+            availability="Available",
+            is_active=True,
+            is_verified=False,
+        )
+
         db.session.add(tailor)
         db.session.commit()
 
-    if request.method == 'POST':
-        tailor.shop_name = request.form.get('shop_name', '').strip() or tailor.shop_name
-        tailor.specialization = request.form.get('specialization', '').strip()
-        tailor.city = request.form.get('city', '').strip()
-        tailor.address = request.form.get('address', '').strip()
-        tailor.description = request.form.get('description', '').strip()
-        tailor.price_range = request.form.get('price_range', '').strip()
+    if request.method == "POST":
+        shop_name = request.form.get(
+            "shop_name",
+            "",
+        ).strip()
 
-        try:
-            tailor.experience = int(request.form.get('experience', 0))
-        except ValueError:
-            pass
+        specialization = request.form.get(
+            "specialization",
+            "",
+        ).strip()
 
-        tailor.availability = bool(request.form.get('availability'))
+        city = request.form.get(
+            "city",
+            "",
+        ).strip()
 
-        if 'profile_pic' in request.files:
-            pic_path = save_uploaded_file(request.files['profile_pic'], folder_name='profile')
-            if pic_path:
-                current_user.profile_pic = pic_path
+        address = request.form.get(
+            "address",
+            "",
+        ).strip()
+
+        description = request.form.get(
+            "description",
+            "",
+        ).strip()
+
+        price_range = request.form.get(
+            "price_range",
+            "",
+        ).strip()
+
+        tailor.shop_name = (
+            shop_name or tailor.shop_name
+        )
+
+        tailor.specialization = (
+            specialization
+            or "Custom Tailoring & Alterations"
+        )
+
+        tailor.city = city or None
+        tailor.address = address or None
+        tailor.description = description or None
+        tailor.price_range = price_range or None
+
+        experience_value = request.form.get(
+            "experience",
+            "",
+        ).strip()
+
+        if experience_value:
+            try:
+                experience = int(experience_value)
+
+                if experience >= 0:
+                    tailor.experience = experience
+
+            except ValueError:
+                flash(
+                    "Experience must be a valid number.",
+                    "warning",
+                )
+
+        # The rebuilt Tailor model stores availability as text.
+        availability_value = request.form.get(
+            "availability",
+            "",
+        ).strip().lower()
+
+        if availability_value in {
+            "available",
+            "open",
+            "yes",
+            "true",
+            "1",
+        }:
+            tailor.availability = "Available"
+
+        elif availability_value in {
+            "unavailable",
+            "closed",
+            "no",
+            "false",
+            "0",
+        }:
+            tailor.availability = "Unavailable"
+
+        elif availability_value:
+            tailor.availability = (
+                request.form.get(
+                    "availability",
+                    "",
+                ).strip()
+            )
+
+        # Preserve the existing profile upload behavior
+        # without assigning a non-existent profile_pic field
+        # to the User model.
+        profile_pic = request.files.get(
+            "profile_pic"
+        )
+
+        if profile_pic and profile_pic.filename:
+            save_uploaded_file(
+                profile_pic,
+                folder_name="profile",
+            )
 
         db.session.commit()
-        flash('Studio profile updated successfully!', 'success')
-        return redirect(url_for('tailor.profile'))
 
-    return render_template('tailor/edit_profile.html', tailor=tailor)
+        flash(
+            "Studio profile updated successfully!",
+            "success",
+        )
+
+        return redirect(
+            url_for("tailor.profile")
+        )
+
+    return render_template(
+        "tailor/edit_profile.html",
+        tailor=tailor,
+    )
 
 
-@tailor_bp.route('/orders')
+# ------------------------------------------------------------
+# Tailor orders
+# ------------------------------------------------------------
+
+@tailor_bp.route("/orders")
 @login_required
 @tailor_required
 def orders():
     tailor = current_user.tailor_profile
-    status_filter = request.args.get('status', 'all')
 
-    query = Order.query.filter_by(tailor_id=tailor.id)
-    if status_filter != 'all':
-        query = query.filter_by(status=status_filter)
+    if not tailor:
+        return redirect(
+            url_for("tailor.edit_profile")
+        )
 
-    orders_list = query.order_by(Order.updated_at.desc()).all()
+    status_filter = request.args.get(
+        "status",
+        "all",
+    ).strip()
+
+    query = Order.query.filter_by(
+        tailor_id=tailor.id
+    )
+
+    if (
+        status_filter != "all"
+        and status_filter in Order.STATUS_FLOW
+    ):
+        query = query.filter_by(
+            status=status_filter
+        )
+    else:
+        status_filter = "all"
+
+    orders_list = (
+        query
+        .order_by(Order.updated_at.desc())
+        .all()
+    )
 
     return render_template(
-        'tailor/orders.html',
+        "tailor/orders.html",
         orders=orders_list,
         status_filter=status_filter,
-        stages=Order.STATUS_STAGES
+        stages=list(Order.STATUS_LABELS.items()),
+        status_labels=Order.STATUS_LABELS,
     )
 
 
-@tailor_bp.route('/orders/<int:order_id>')
+# ------------------------------------------------------------
+# Order details
+# ------------------------------------------------------------
+
+@tailor_bp.route(
+    "/orders/<int:order_id>"
+)
 @login_required
 @tailor_required
 def order_details(order_id):
     tailor = current_user.tailor_profile
-    order = Order.query.filter_by(id=order_id, tailor_id=tailor.id).first_or_404()
-    return render_template('tailor/order_details.html', order=order, stages=Order.STATUS_STAGES)
+
+    if not tailor:
+        return redirect(
+            url_for("tailor.edit_profile")
+        )
+
+    order = (
+        Order.query
+        .filter_by(
+            id=order_id,
+            tailor_id=tailor.id,
+        )
+        .first_or_404()
+    )
+
+    return render_template(
+        "tailor/order_details.html",
+        order=order,
+        stages=list(Order.STATUS_LABELS.items()),
+        status_labels=Order.STATUS_LABELS,
+    )
 
 
-@tailor_bp.route('/quotations')
+# ------------------------------------------------------------
+# Quotations
+# ------------------------------------------------------------
+
+@tailor_bp.route("/quotations")
 @login_required
 @tailor_required
 def quotations():
     tailor = current_user.tailor_profile
-    pending_quotes = Order.query.filter_by(tailor_id=tailor.id, status='pending').all()
-    quoted_orders = Order.query.filter_by(tailor_id=tailor.id, status='quoted').all()
+
+    if not tailor:
+        return redirect(
+            url_for("tailor.edit_profile")
+        )
+
+    pending_quotes = (
+        Order.query
+        .filter_by(
+            tailor_id=tailor.id,
+            status="pending",
+        )
+        .order_by(Order.created_at.desc())
+        .all()
+    )
+
+    quoted_orders = (
+        Order.query
+        .filter_by(
+            tailor_id=tailor.id,
+            status="quoted",
+        )
+        .order_by(Order.updated_at.desc())
+        .all()
+    )
 
     return render_template(
-        'tailor/quotations.html',
+        "tailor/quotations.html",
         pending_quotes=pending_quotes,
-        quoted_orders=quoted_orders
+        quoted_orders=quoted_orders,
     )
 
 
-@tailor_bp.route('/messages')
+# ------------------------------------------------------------
+# Tailor messaging
+# ------------------------------------------------------------
+
+@tailor_bp.route("/messages")
 @login_required
 @tailor_required
 def messages():
-    return redirect(url_for('customer.messages'))
+    return redirect(
+        url_for("customer.messages")
+    )
 
 
-@tailor_bp.route('/reviews')
+# ------------------------------------------------------------
+# Reviews
+# ------------------------------------------------------------
+
+@tailor_bp.route("/reviews")
 @login_required
 @tailor_required
 def reviews():
     tailor = current_user.tailor_profile
-    reviews_list = Review.query.filter_by(tailor_id=tailor.id).order_by(Review.created_at.desc()).all()
-    return render_template('tailor/reviews.html', tailor=tailor, reviews=reviews_list)
+
+    if not tailor:
+        return redirect(
+            url_for("tailor.edit_profile")
+        )
+
+    reviews_list = (
+        Review.query
+        .filter_by(tailor_id=tailor.id)
+        .order_by(Review.created_at.desc())
+        .all()
+    )
+
+    return render_template(
+        "tailor/reviews.html",
+        tailor=tailor,
+        reviews=reviews_list,
+    )

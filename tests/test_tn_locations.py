@@ -102,6 +102,7 @@ class TamilNaduLocationTestCase(unittest.TestCase):
             'email': email,
             'password': 'Password@123',
             'confirm_password': 'Password@123',
+            'terms': '1',
             'phone': '+91 98401 23456',
             'shop_name': f'Chennai Silk Couture {uid}',
             'specialization': 'Kanchipuram Silk Blouses, Wedding Suits',

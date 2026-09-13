@@ -1,174 +1,416 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request
-from flask_login import login_user, logout_user, login_required, current_user
+from urllib.parse import urlparse
+
+from flask import Blueprint, flash, redirect, render_template, request, url_for
+from flask_login import current_user, login_required, login_user, logout_user
+
 from models import db
-from models.user import User
 from models.tailor import Tailor
+from models.user import User
 from utils.validators import validate_email, validate_password, validate_phone
 
-auth_bp = Blueprint('auth', __name__)
+
+auth_bp = Blueprint("auth", __name__)
 
 
-@auth_bp.route('/login', methods=['GET', 'POST'])
+def _safe_next_url():
+    """Return a safe local redirect target from ?next=."""
+    next_page = request.args.get("next", "").strip()
+
+    if not next_page:
+        return None
+
+    parsed = urlparse(next_page)
+
+    if parsed.scheme or parsed.netloc:
+        return None
+
+    if not next_page.startswith("/"):
+        return None
+
+    return next_page
+
+
+def _dashboard_redirect(user):
+    """Send the authenticated user to the correct dashboard."""
+    if user.is_admin:
+        return redirect(url_for("admin.dashboard"))
+
+    if user.is_tailor:
+        return redirect(url_for("tailor.dashboard"))
+
+    return redirect(url_for("customer.dashboard"))
+
+
+@auth_bp.route("/login", methods=["GET", "POST"])
 def login():
     if current_user.is_authenticated:
-        if current_user.is_admin:
-            return redirect(url_for('admin.dashboard'))
-        elif current_user.is_tailor:
-            return redirect(url_for('tailor.dashboard'))
-        return redirect(url_for('customer.dashboard'))
+        return _dashboard_redirect(current_user)
 
-    if request.method == 'POST':
-        email = request.form.get('email', '').strip().lower()
-        password = request.form.get('password', '')
-        remember = bool(request.form.get('remember'))
+    if request.method == "POST":
+        email = request.form.get("email", "").strip().lower()
+        password = request.form.get("password", "")
+        remember = request.form.get("remember") in {
+            "on",
+            "true",
+            "1",
+            "yes",
+        }
 
-        valid, err = validate_email(email)
+        valid, error = validate_email(email)
+
         if not valid:
-            flash(err, 'danger')
-            return render_template('login.html', email=email)
+            flash(error or "Invalid email address.", "danger")
+            return render_template(
+                "login.html",
+                email=email,
+            )
 
         user = User.query.filter_by(email=email).first()
+
         if not user or not user.check_password(password):
-            flash('Invalid email or password. Please try again.', 'danger')
-            return render_template('login.html', email=email)
+            flash(
+                "Invalid email or password. Please try again.",
+                "danger",
+            )
+            return render_template(
+                "login.html",
+                email=email,
+            )
 
-        if not user.is_active_account:
-            flash('This account has been deactivated. Please contact support.', 'warning')
-            return render_template('login.html', email=email)
+        if not user.is_active:
+            flash(
+                "This account has been deactivated. Please contact support.",
+                "warning",
+            )
+            return render_template(
+                "login.html",
+                email=email,
+            )
 
-        login_user(user, remember=remember)
-        flash(f'Welcome back, {user.name}!', 'success')
+        login_user(
+            user,
+            remember=remember,
+        )
 
-        next_page = request.args.get('next')
-        if next_page and next_page.startswith('/'):
+        flash(
+            f"Welcome back, {user.name}!",
+            "success",
+        )
+
+        next_page = _safe_next_url()
+
+        if next_page:
             return redirect(next_page)
 
-        if user.is_admin:
-            return redirect(url_for('admin.dashboard'))
-        elif user.is_tailor:
-            return redirect(url_for('tailor.dashboard'))
-        return redirect(url_for('customer.dashboard'))
+        return _dashboard_redirect(user)
 
-    return render_template('login.html')
+    return render_template("login.html")
 
 
-@auth_bp.route('/register', methods=['GET', 'POST'])
+@auth_bp.route("/register", methods=["GET", "POST"])
 def register():
     if current_user.is_authenticated:
-        return redirect(url_for('index'))
+        return redirect(url_for("index"))
 
-    if request.method == 'POST':
-        name = request.form.get('name', '').strip()
-        email = request.form.get('email', '').strip().lower()
-        password = request.form.get('password', '')
-        confirm_password = request.form.get('confirm_password', '')
-        phone = request.form.get('phone', '').strip()
-        role = request.form.get('role', 'customer').lower()
+    if request.method == "POST":
+        name = request.form.get("name", "").strip()
+        email = request.form.get("email", "").strip().lower()
+        password = request.form.get("password", "")
+        confirm_password = request.form.get(
+            "confirm_password",
+            "",
+        )
+        phone = request.form.get("phone", "").strip()
 
-        # Specific tailor fields
-        shop_name = request.form.get('shop_name', '').strip()
-        city = request.form.get('city', '').strip()
-        specialization = request.form.get('specialization', '').strip()
-        address = request.form.get('address', '').strip()
+        role = request.form.get(
+            "role",
+            "customer",
+        ).strip().lower()
 
-        # Location hierarchy IDs
-        state_id = request.form.get('state_id', type=int) or None
-        district_id = request.form.get('district_id', type=int) or None
-        taluk_id = request.form.get('taluk_id', type=int) or None
-        city_id = request.form.get('city_id', type=int) or None
-        town_id = request.form.get('town_id', type=int) or None
-        village_id = request.form.get('village_id', type=int) or None
+        # Tailor information
+        shop_name = request.form.get(
+            "shop_name",
+            "",
+        ).strip()
+
+        city = request.form.get(
+            "city",
+            "",
+        ).strip()
+
+        specialization = request.form.get(
+            "specialization",
+            "",
+        ).strip()
+
+        address = request.form.get(
+            "address",
+            "",
+        ).strip()
+
+        # Location hierarchy values are accepted from the form.
+        # They can be connected to the Tailor model when the
+        # location fields are included in the model schema.
+        state_id = request.form.get(
+            "state_id",
+            type=int,
+        )
+
+        district_id = request.form.get(
+            "district_id",
+            type=int,
+        )
+
+        taluk_id = request.form.get(
+            "taluk_id",
+            type=int,
+        )
+
+        city_id = request.form.get(
+            "city_id",
+            type=int,
+        )
+
+        town_id = request.form.get(
+            "town_id",
+            type=int,
+        )
+
+        village_id = request.form.get(
+            "village_id",
+            type=int,
+        )
 
         # Coordinates
-        lat_val = request.form.get('latitude', '').strip()
-        lng_val = request.form.get('longitude', '').strip()
-        latitude = float(lat_val) if lat_val else None
-        longitude = float(lng_val) if lng_val else None
+        latitude = None
+        longitude = None
 
-        if role not in ['customer', 'tailor']:
-            role = 'customer'
+        latitude_value = request.form.get(
+            "latitude",
+            "",
+        ).strip()
 
-        # Validations
+        longitude_value = request.form.get(
+            "longitude",
+            "",
+        ).strip()
+
+        try:
+            if latitude_value:
+                latitude = float(latitude_value)
+
+            if longitude_value:
+                longitude = float(longitude_value)
+
+        except ValueError:
+            flash(
+                "Please provide valid location coordinates.",
+                "danger",
+            )
+            return render_template(
+                "register.html",
+                **request.form,
+            )
+
+        if role not in {"customer", "tailor"}:
+            role = "customer"
+
+        # --------------------------------------------------
+        # Validation
+        # --------------------------------------------------
+
         if not name or len(name) < 2:
-            flash('Please enter your full name.', 'danger')
-            return render_template('register.html', **request.form)
+            flash(
+                "Please enter your full name.",
+                "danger",
+            )
+            return render_template(
+                "register.html",
+                **request.form,
+            )
 
-        valid_e, err_e = validate_email(email)
-        if not valid_e:
-            flash(err_e, 'danger')
-            return render_template('register.html', **request.form)
+        valid_email, email_error = validate_email(email)
 
-        if User.query.filter_by(email=email).first():
-            flash('An account with this email already exists.', 'danger')
-            return render_template('register.html', **request.form)
+        if not valid_email:
+            flash(
+                email_error or "Invalid email address format.",
+                "danger",
+            )
+            return render_template(
+                "register.html",
+                **request.form,
+            )
 
-        valid_p, err_p = validate_password(password)
-        if not valid_p:
-            flash(err_p, 'danger')
-            return render_template('register.html', **request.form)
+        existing_user = User.query.filter_by(
+            email=email
+        ).first()
+
+        if existing_user:
+            flash(
+                "An account with this email already exists.",
+                "danger",
+            )
+            return render_template(
+                "register.html",
+                **request.form,
+            )
+
+        valid_password, password_error = validate_password(
+            password
+        )
+
+        if not valid_password:
+            flash(
+                password_error or "Invalid password.",
+                "danger",
+            )
+            return render_template(
+                "register.html",
+                **request.form,
+            )
 
         if password != confirm_password:
-            flash('Passwords do not match.', 'danger')
-            return render_template('register.html', **request.form)
-
-        valid_ph, err_ph = validate_phone(phone)
-        if not valid_ph:
-            flash(err_ph, 'danger')
-            return render_template('register.html', **request.form)
-
-        if role == 'tailor' and not shop_name:
-            flash('Shop or studio name is required for tailors.', 'danger')
-            return render_template('register.html', **request.form)
-
-        # Create user
-        new_user = User(
-            name=name,
-            email=email,
-            phone=phone,
-            role=role
-        )
-        new_user.set_password(password)
-        db.session.add(new_user)
-        db.session.flush()
-
-        # If tailor, create tailor profile with location hierarchy
-        if role == 'tailor':
-            tailor_profile = Tailor(
-                user_id=new_user.id,
-                shop_name=shop_name or f"{name}'s Atelier",
-                city=city or 'Tamil Nadu',
-                address=address or None,
-                state_id=state_id,
-                district_id=district_id,
-                taluk_id=taluk_id,
-                city_id=city_id,
-                town_id=town_id,
-                village_id=village_id,
-                latitude=latitude,
-                longitude=longitude,
-                specialization=specialization or 'Custom Tailoring & Alterations',
-                experience=1,
-                price_range='₹300 - ₹2000',
-                availability=True,
-                is_verified=True,
-                is_active=True
+            flash(
+                "Passwords do not match.",
+                "danger",
             )
-            db.session.add(tailor_profile)
+            return render_template(
+                "register.html",
+                **request.form,
+            )
 
-        db.session.commit()
+        valid_phone, phone_error = validate_phone(phone)
+
+        if not valid_phone:
+            flash(
+                phone_error or "Invalid phone number.",
+                "danger",
+            )
+            return render_template(
+                "register.html",
+                **request.form,
+            )
+
+        if role == "tailor" and not shop_name:
+            flash(
+                "Shop or studio name is required for tailors.",
+                "danger",
+            )
+            return render_template(
+                "register.html",
+                **request.form,
+            )
+
+        if request.form.get("terms") not in {"1", "on", "true", "yes"}:
+            flash(
+                "Please accept the platform terms before registering.",
+                "danger",
+            )
+            return render_template(
+                "register.html",
+                **request.form,
+            )
+
+        # --------------------------------------------------
+        # Create user
+        # --------------------------------------------------
+
+        new_user = User()
+        new_user.name = name
+        new_user.email = email
+        new_user.phone = phone
+        new_user.role = role
+        new_user.is_active = True
+
+        new_user.set_password(password)
+
+        try:
+            db.session.add(new_user)
+            db.session.flush()
+
+            # --------------------------------------------------
+            # Create tailor profile
+            #
+            # Only fields currently present in models/tailor.py
+            # are written here.
+            # --------------------------------------------------
+
+            if role == "tailor":
+                tailor_profile = Tailor(
+                    user_id=new_user.id,
+                    shop_name=(
+                        shop_name
+                        or f"{name}'s Atelier"
+                    ),
+                    specialization=(
+                        specialization
+                        or "Custom Tailoring & Alterations"
+                    ),
+                    address=address or None,
+                    city=city or "Tamil Nadu",
+                    state_id=state_id,
+                    district_id=district_id,
+                    taluk_id=taluk_id,
+                    city_id=city_id,
+                    town_id=town_id,
+                    village_id=village_id,
+                    latitude=latitude,
+                    longitude=longitude,
+                    description=(
+                        "Local tailoring and alteration services."
+                    ),
+                    experience=1,
+                    price_range="₹300 - ₹2000",
+                    availability="Available",
+                    rating=0,
+                    total_reviews=0,
+                    is_verified=True,
+                    is_active=True,
+                )
+
+                db.session.add(tailor_profile)
+
+            db.session.commit()
+
+        except Exception:
+            db.session.rollback()
+
+            flash(
+                "We couldn't create your account right now. "
+                "Please try again.",
+                "danger",
+            )
+
+            return render_template(
+                "register.html",
+                **request.form,
+            )
+
+        # --------------------------------------------------
+        # Log the user in
+        # --------------------------------------------------
+
         login_user(new_user)
-        flash('Account created successfully! Welcome to Local Tailor Connect.', 'success')
 
-        if new_user.is_tailor:
-            return redirect(url_for('tailor.dashboard'))
-        return redirect(url_for('customer.dashboard'))
+        flash(
+            "Account created successfully! "
+            "Welcome to TailorConnect.",
+            "success",
+        )
 
-    return render_template('register.html')
+        return _dashboard_redirect(new_user)
+
+    return render_template("register.html")
 
 
-@auth_bp.route('/logout')
+@auth_bp.route("/logout")
 @login_required
 def logout():
     logout_user()
-    flash('You have been logged out safely.', 'info')
-    return redirect(url_for('index'))
+
+    flash(
+        "You have been logged out safely.",
+        "info",
+    )
+
+    return redirect(url_for("index"))
