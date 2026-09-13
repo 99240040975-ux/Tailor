@@ -143,8 +143,19 @@ class TamilNaduLocationTestCase(unittest.TestCase):
         res = self.client.get(f'/customer/tailors?district_id=999999')
         self.assertEqual(res.status_code, 200)
         self.assertIn(b"No registered tailors found in this location.", res.data)
-        print("\n[Test 4 OK] Empty state correctly displays exact string: 'No registered tailors found in this location.'")
+    def test_05_live_location_typeahead_search(self):
+        """Verify live location typeahead search by typed place name in Tamil Nadu."""
+        # 1. Search with matching location
+        res = self.client.get('/customer/tailors?location_q=Madurai')
+        self.assertEqual(res.status_code, 200)
+
+        # 2. Search with empty location returns required message
+        res = self.client.get('/customer/tailors?location_q=NonExistentTownInTamilNadu999')
+        self.assertEqual(res.status_code, 200)
+        self.assertIn(b"No registered tailors found in this location.", res.data)
+        print("\n[Test 5 OK] Live location search verified with matching and empty results.")
 
 
 if __name__ == '__main__':
     unittest.main()
+

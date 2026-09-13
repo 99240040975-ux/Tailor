@@ -542,19 +542,23 @@
 
                 {% else %}
 
-                    <a
-                        href="{{ url_for('auth.login') }}"
-                        class="nav-link"
-                    >
-                        Login
-                    </a>
+                    {% if request.endpoint != 'auth.login' %}
+                        <a
+                            href="{{ url_for('auth.login') }}"
+                            class="nav-link"
+                        >
+                            Login
+                        </a>
+                    {% endif %}
 
-                    <a
-                        href="{{ url_for('auth.register') }}"
-                        class="nav-button"
-                    >
-                        Get started
-                    </a>
+                    {% if request.endpoint != 'auth.register' %}
+                        <a
+                            href="{{ url_for('auth.register') }}"
+                            class="nav-button"
+                        >
+                            Register
+                        </a>
+                    {% endif %}
 
                 {% endif %}
 
@@ -664,19 +668,23 @@
 
             {% else %}
 
-                <a
-                    href="{{ url_for('auth.login') }}"
-                    class="mobile-nav-link"
-                >
-                    Login
-                </a>
+                {% if request.endpoint != 'auth.login' %}
+                    <a
+                        href="{{ url_for('auth.login') }}"
+                        class="mobile-nav-link"
+                    >
+                        Login
+                    </a>
+                {% endif %}
 
-                <a
-                    href="{{ url_for('auth.register') }}"
-                    class="mobile-nav-button"
-                >
-                    Get started
-                </a>
+                {% if request.endpoint != 'auth.register' %}
+                    <a
+                        href="{{ url_for('auth.register') }}"
+                        class="mobile-nav-button"
+                    >
+                        Register
+                    </a>
+                {% endif %}
 
             {% endif %}
 

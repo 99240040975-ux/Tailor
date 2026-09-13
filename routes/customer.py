@@ -229,6 +229,27 @@ def tailors():
             )
         )
 
+    location_q = request.args.get(
+        "location_q",
+        "",
+    ).strip()
+
+    # Live Tamil Nadu location search (typed place name)
+    if location_q:
+        from models.location import District, Taluk, City, Town, Village
+        loc_pat = f"%{location_q}%"
+        query = query.filter(
+            db.or_(
+                Tailor.city.ilike(loc_pat),
+                Tailor.address.ilike(loc_pat),
+                Tailor.district.has(District.name.ilike(loc_pat)),
+                Tailor.taluk.has(Taluk.name.ilike(loc_pat)),
+                Tailor.city_rel.has(City.name.ilike(loc_pat)),
+                Tailor.town.has(Town.name.ilike(loc_pat)),
+                Tailor.village.has(Village.name.ilike(loc_pat)),
+            )
+        )
+
     # City search
     if city:
         query = query.filter(
@@ -327,6 +348,7 @@ def tailors():
         tailors=tailors_list,
         districts=districts,
         search_q=search_q,
+        location_q=location_q,
         selected_city=city,
         selected_spec=specialization,
         selected_sort=sort,

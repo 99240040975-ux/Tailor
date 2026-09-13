@@ -72,6 +72,19 @@
                 {% endif %}
             </div>
 
+            <form action="{{ url_for('customer.tailors') }}" method="GET" style="margin: 22px 0 16px; max-width: 460px; position: relative;">
+                <div style="display: flex; gap: 8px; background: rgba(255, 255, 255, 0.95); border: 1.5px solid rgba(129, 140, 248, 0.35); border-radius: 14px; padding: 6px 8px 6px 14px; box-shadow: 0 12px 30px rgba(100, 60, 180, 0.14); align-items: center;">
+                    <span style="font-size: 1.15rem; flex-shrink: 0;">📍</span>
+                    <input type="text" name="location_q" placeholder="Type city or place in Tamil Nadu (e.g. Madurai, Chennai...)" style="border: none; outline: none; background: transparent; font-size: 0.9rem; color: #1e1030; flex: 1; min-width: 140px; font-weight: 500;">
+                    <button type="submit" style="background: linear-gradient(135deg, #f472b6, #818cf8); border: none; color: #fff; padding: 9px 18px; border-radius: 10px; font-size: 0.88rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px; white-space: nowrap;">
+                        Find Near Me →
+                    </button>
+                </div>
+                <div style="font-size: 0.76rem; color: #6b5c7a; margin-top: 6px; font-weight: 600;">
+                    🏛️ Live search across 38 districts & 313 taluks in Tamil Nadu
+                </div>
+            </form>
+
             <div class="hero-trust">
                 <span>✓ Personal measurements</span>
                 <span>✓ Order tracking</span>

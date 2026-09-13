@@ -118,30 +118,7 @@
                 {% endwith %}
 
 
-                <!-- Quick Demo Accounts -->
-                <div class="demo-box">
-                    <div class="demo-header">
-                        <div class="demo-title-wrap">
-                            <span class="demo-icon">⚡</span>
-                            <span class="demo-title">Quick Demo Login</span>
-                        </div>
-                        <span class="demo-pass">Password: <strong>password123</strong></span>
-                    </div>
-                    <div class="demo-buttons">
-                        <button type="button" class="demo-btn demo-customer" onclick="quickFill('arjun@example.com', 'password123')" title="Click to autofill Customer login">
-                            <span class="demo-role-badge badge-customer">Customer</span>
-                            <span class="demo-email">arjun@example.com</span>
-                        </button>
-                        <button type="button" class="demo-btn demo-tailor" onclick="quickFill('ravi@tailor.com', 'password123')" title="Click to autofill Tailor login">
-                            <span class="demo-role-badge badge-tailor">Tailor</span>
-                            <span class="demo-email">ravi@tailor.com</span>
-                        </button>
-                        <button type="button" class="demo-btn demo-admin" onclick="quickFill('admin@tailor.com', 'password123')" title="Click to autofill Admin login">
-                            <span class="demo-role-badge badge-admin">Admin</span>
-                            <span class="demo-email">admin@tailor.com</span>
-                        </button>
-                    </div>
-                </div>
+
 
 
                 <form
@@ -250,18 +227,12 @@
                 </form>
 
 
-                <div class="auth-divider">
-                    <span>NEW TO TAILORCONNECT?</span>
+                <div style="text-align: center; margin-top: 22px; font-size: 0.92rem; color: #6b5c7a;">
+                    Don't have an account? 
+                    <a href="{{ url_for('auth.register') }}" style="color: #818cf8; font-weight: 700; text-decoration: none; margin-left: 4px;">
+                        Create an account →
+                    </a>
                 </div>
-
-
-                <a
-                    href="{{ url_for('auth.register') }}"
-                    class="register-button"
-                >
-                    <span>Create your account</span>
-                    <span>↗</span>
-                </a>
 
 
                 <div class="auth-note">
@@ -375,27 +346,6 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
 });
-
-function quickFill(email, password) {
-    const emailInput = document.getElementById("email");
-    const passwordInput = document.getElementById("password");
-    if (emailInput && passwordInput) {
-        emailInput.value = email;
-        passwordInput.value = password;
-        emailInput.dispatchEvent(new Event("input"));
-        passwordInput.dispatchEvent(new Event("input"));
-        
-        const emailShell = emailInput.closest(".input-shell");
-        const passShell = passwordInput.closest(".input-shell");
-        if (emailShell) emailShell.classList.add("focused");
-        if (passShell) passShell.classList.add("focused");
-
-        const submitBtn = document.querySelector(".auth-submit");
-        if (submitBtn) {
-            submitBtn.focus();
-        }
-    }
-}
 </script>
 
 {% endblock %}
