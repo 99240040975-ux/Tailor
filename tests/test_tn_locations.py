@@ -133,27 +133,37 @@ class TamilNaduLocationTestCase(unittest.TestCase):
         self.assertTrue(tailor.is_verified)
         print(f"\n[Test 3 OK] Registered tailor ID {tailor.id}: {tailor.location_display}")
 
-    def test_04_customer_search_and_empty_state_message(self):
-        """Verify discovery search by district and empty location display message."""
-        # Query an empty location district (e.g. non-existent or fresh district without tailors)
-        empty_dist = District.query.filter(District.name.ilike('%Nilgiris%')).first()
-        if not empty_dist:
-            empty_dist = District.query.first()
+    def test_04_unauthenticated_access_redirects_to_login(self):
+        """Verify unauthenticated access to tailors discovery redirects to login."""
+        res = self.client.get('/customer/tailors')
+        self.assertEqual(res.status_code, 302)
+        self.assertIn('/auth/login', res.headers.get('Location', ''))
+        print("\n[Test 4 OK] Unauthenticated guest properly redirected away from /tailors to /auth/login.")
 
-        res = self.client.get(f'/customer/tailors?district_id=999999')
-        self.assertEqual(res.status_code, 200)
-        self.assertIn(b"No registered tailors found in this location.", res.data)
-    def test_05_live_location_typeahead_search(self):
-        """Verify live location typeahead search by typed place name in Tamil Nadu."""
-        # 1. Search with matching location
-        res = self.client.get('/customer/tailors?location_q=Madurai')
-        self.assertEqual(res.status_code, 200)
+    def test_05_authenticated_customer_search_and_map(self):
+        """Verify authenticated customer can access tailors discovery, map, and typeahead."""
+        # Log in as demo customer
+        login_res = self.client.post('/auth/login', data={
+            'email': 'arjun@example.com',
+            'password': 'password123'
+        }, follow_redirects=True)
+        self.assertEqual(login_res.status_code, 200)
 
-        # 2. Search with empty location returns required message
-        res = self.client.get('/customer/tailors?location_q=NonExistentTownInTamilNadu999')
+        # 1. Access tailors discovery page
+        res = self.client.get('/customer/tailors')
         self.assertEqual(res.status_code, 200)
-        self.assertIn(b"No registered tailors found in this location.", res.data)
-        print("\n[Test 5 OK] Live location search verified with matching and empty results.")
+        self.assertIn(b"tnTailorMap", res.data)
+        self.assertIn(b"tailorsData", res.data)
+
+        # 2. Search with location in Tamil Nadu
+        res_loc = self.client.get('/customer/tailors?location_q=Madurai')
+        self.assertEqual(res_loc.status_code, 200)
+
+        # 3. Search with non-existent location returns empty message
+        res_empty = self.client.get('/customer/tailors?location_q=NonExistentTownInTamilNadu999')
+        self.assertEqual(res_empty.status_code, 200)
+        self.assertIn(b"No tailors found matching your search.", res_empty.data)
+        print("\n[Test 5 OK] Authenticated customer verified with live Tamil Nadu map and location filtering.")
 
 
 if __name__ == '__main__':

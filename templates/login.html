@@ -1,174 +1,172 @@
 {% extends "base.html" %}
 
-{% block title %}Login | TailorConnect{% endblock %}
+{% block title %}Sign In | TailorConnect — Your Local Tailor, Reimagined{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/3d-home.css') }}">
 {% endblock %}
 
 {% block content %}
+<div class="auth-3d-page">
 
-<div class="auth-page">
+    <!-- Soft background gradient blobs matching home -->
+    <div class="bg-blob blob-pink"  aria-hidden="true"></div>
+    <div class="bg-blob blob-blue"  aria-hidden="true"></div>
+    <div class="bg-blob blob-peach" aria-hidden="true"></div>
 
-    <div class="auth-glow auth-glow-one"></div>
-    <div class="auth-glow auth-glow-two"></div>
+    <div class="auth-3d-container">
 
-    <div class="auth-shell">
+        <!-- ── LEFT: 3D FLOATING CRAFTSMANSHIP STAGE ── -->
+        <div class="auth-stage-column" aria-hidden="true">
+            <div class="auth-stage-wrap">
 
-        <!-- Fashion Visual -->
-        <section class="auth-visual">
+                <!-- Decorative orbit rings -->
+                <div class="orbit-ring ring-lg"></div>
+                <div class="orbit-ring ring-md"></div>
+                <div class="orbit-ring ring-sm"></div>
 
-            <div class="visual-top">
-                <span class="fashion-mark">TC</span>
-                <span>TAILORCONNECT</span>
-            </div>
+                <!-- 3D Clay Fashion Object -->
+                <div class="fashion-object auth-fashion-object">
+                    <div class="garment-glow"></div>
 
-            <div class="fashion-visual-content">
-
-                <div class="thread-orbit orbit-one"></div>
-                <div class="thread-orbit orbit-two"></div>
-
-                <div class="needle-art">
-                    <div class="needle-head"></div>
-                    <div class="needle-body"></div>
-                    <div class="needle-eye"></div>
-                    <div class="needle-thread"></div>
-                </div>
-
-                <div class="fabric-shape fabric-one"></div>
-                <div class="fabric-shape fabric-two"></div>
-
-                <div class="visual-copy">
-                    <span class="visual-label">
-                        YOUR FIT. YOUR STYLE.
-                    </span>
-
-                    <h1>
-                        Crafted<br>
-                        <span>for you.</span>
-                    </h1>
-
-                    <p>
-                        Connect with trusted local tailors,
-                        manage your measurements and create
-                        clothing that actually feels yours.
-                    </p>
-                </div>
-
-            </div>
-
-            <div class="visual-footer">
-                <span>LOCAL CRAFT</span>
-                <span>•</span>
-                <span>PERSONAL FIT</span>
-                <span>•</span>
-                <span>SMART ORDERS</span>
-            </div>
-
-        </section>
-
-
-        <!-- Login -->
-        <section class="auth-card-wrapper">
-
-            <div class="auth-card">
-
-                <div class="mobile-brand">
-                    <span class="fashion-mark">TC</span>
-                    <span>TAILORCONNECT</span>
-                </div>
-
-                <div class="auth-heading">
-
-                    <span class="eyebrow">
-                        WELCOME BACK
-                    </span>
-
-                    <h2>
-                        Let's get<br>
-                        <span>you fitted.</span>
-                    </h2>
-
-                    <p>
-                        Sign in to continue your tailoring journey.
-                    </p>
-
-                </div>
-
-
-                {% with messages = get_flashed_messages(with_categories=true) %}
-
-                    {% if messages %}
-
-                        <div class="auth-messages">
-
-                            {% for category, message in messages %}
-
-                                <div class="auth-message {{ category }}">
-                                    <span>!</span>
-                                    {{ message }}
-                                </div>
-
-                            {% endfor %}
-
+                    <div class="garment">
+                        <div class="sleeve sleeve-left"></div>
+                        <div class="sleeve sleeve-right"></div>
+                        <div class="garment-body">
+                            <div class="garment-neck"></div>
+                            <div class="seam seam-l"></div>
+                            <div class="seam seam-r"></div>
+                            <div class="btn-dot b1"></div>
+                            <div class="btn-dot b2"></div>
+                            <div class="btn-dot b3"></div>
                         </div>
+                    </div>
 
+                    <!-- Floating needle -->
+                    <div class="needle">
+                        <div class="needle-shaft"></div>
+                        <div class="needle-eye"></div>
+                    </div>
+
+                    <!-- Floating thread arcs -->
+                    <div class="thread-arc arc-a"></div>
+                    <div class="thread-arc arc-b"></div>
+                    <div class="thread-arc arc-c"></div>
+                </div>
+
+                <!-- 3D Info Chips Floating Around Garment -->
+                <div class="info-chip chip-measurements auth-chip-1">
+                    <div class="chip-icon">📏</div>
+                    <div>
+                        <strong>Measurements</strong>
+                        <small>Saved profiles</small>
+                    </div>
+                </div>
+
+                <div class="info-chip chip-tailor auth-chip-2">
+                    <div class="chip-icon">✂️</div>
+                    <div>
+                        <strong>Expert Tailors</strong>
+                        <small>Tamil Nadu Verified</small>
+                    </div>
+                </div>
+
+                <div class="info-chip chip-order auth-chip-3">
+                    <div class="chip-icon">📦</div>
+                    <div>
+                        <strong>Live Tracking</strong>
+                        <small>Every stitch</small>
+                    </div>
+                </div>
+
+                <div class="rating-badge auth-rating-badge">
+                    <span class="badge-star">★</span>
+                    <div>
+                        <strong>TRUSTED</strong>
+                        <small>Local Crafters</small>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Left column text footer -->
+            <div class="auth-visual-footer">
+                <span class="pill-dot" style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#f472b6; margin-right:6px;"></span>
+                <span style="font-size: 0.88rem; font-weight: 700; color: #6b5c7a;">Discover master tailors, live map tracking & bespoke digital fits across Tamil Nadu.</span>
+            </div>
+        </div>
+
+        <!-- ── RIGHT: CLAYMORPHIC LOGIN CARD ── -->
+        <div class="auth-card-column">
+            <div class="auth-clay-card">
+
+                <div class="hero-pill" style="margin-bottom: 16px;">
+                    <span class="pill-dot" aria-hidden="true"></span>
+                    WELCOME BACK TO TAILORCONNECT
+                </div>
+
+                <h1 class="auth-title">
+                    Sign in to your<br>
+                    <span class="gradient-text">tailoring hub.</span>
+                </h1>
+
+                <p class="auth-subtitle">
+                    Manage your measurements, view Tamil Nadu artisans, and track your ongoing stitching orders.
+                </p>
+
+                <!-- Demo Quick-Fill Buttons for easy testing -->
+                <div class="demo-login-box">
+                    <span style="font-size: 0.76rem; font-weight: 800; color: #818cf8; text-transform: uppercase; letter-spacing: 0.5px;">⚡ Quick Demo Login:</span>
+                    <div style="display: flex; gap: 8px; margin-top: 6px; flex-wrap: wrap;">
+                        <button type="button" class="demo-badge-btn" id="demoCustomerBtn">
+                            👤 Customer (Arjun)
+                        </button>
+                        <button type="button" class="demo-badge-btn" id="demoTailorBtn">
+                            ✂️ Tailor (Ravi Master)
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Flash Messages -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        <div class="auth-messages">
+                            {% for category, message in messages %}
+                                <div class="auth-flash-msg flash-{{ category if category != 'error' else 'danger' }}">
+                                    <span>⚠️ {{ message }}</span>
+                                </div>
+                            {% endfor %}
+                        </div>
                     {% endif %}
-
                 {% endwith %}
 
+                <!-- Form -->
+                <form method="POST" action="{{ url_for('auth.login') }}" class="auth-modern-form">
+                    <input type="hidden" name="next" value="{{ request.args.get('next', '') }}">
 
-
-
-
-                <form
-                    method="POST"
-                    action="{{ url_for('auth.login') }}"
-                    class="auth-form"
-                >
-
-                    <div class="field-group">
-
-                        <label for="email">
-                            Email address
-                        </label>
-
-                        <div class="input-shell">
-
-                            <span class="input-icon">@</span>
-
+                    <div class="auth-input-group">
+                        <label for="email">Email Address</label>
+                        <div class="auth-input-wrapper">
+                            <span class="auth-field-icon">✉️</span>
                             <input
                                 type="email"
                                 id="email"
                                 name="email"
-                                placeholder="you@example.com"
+                                placeholder="name@example.com"
                                 autocomplete="email"
                                 required
                             >
-
                         </div>
-
                     </div>
 
-
-                    <div class="field-group">
-
-                        <div class="label-row">
-
-                            <label for="password">
-                                Password
-                            </label>
-
-                            <a href="#" class="forgot-link">
-                                Forgot password?
-                            </a>
-
+                    <div class="auth-input-group">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <label for="password">Password</label>
+                            <a href="#" style="font-size: 0.78rem; color: #818cf8; font-weight: 700; text-decoration: none;">Forgot password?</a>
                         </div>
-
-                        <div class="input-shell">
-
-                            <span class="input-icon">●</span>
-
+                        <div class="auth-input-wrapper">
+                            <span class="auth-field-icon">🔒</span>
                             <input
                                 type="password"
                                 id="password"
@@ -177,175 +175,77 @@
                                 autocomplete="current-password"
                                 required
                             >
-
-                            <button
-                                type="button"
-                                class="password-toggle"
-                                id="passwordToggle"
-                                aria-label="Show password"
-                            >
-                                ◉
-                            </button>
-
+                            <button type="button" class="pwd-toggle-btn" id="passwordToggle" aria-label="Toggle password visibility">👁️</button>
                         </div>
-
                     </div>
 
+                    <div class="auth-options-row">
+                        <label class="remember-label">
+                            <input type="checkbox" name="remember" value="1">
+                            <span>Keep me signed in</span>
+                        </label>
+                    </div>
 
-                    <label class="remember-row">
-
-                        <input
-                            type="checkbox"
-                            name="remember"
-                            value="1"
-                        >
-
-                        <span class="custom-checkbox"></span>
-
-                        <span>
-                            Keep me signed in
-                        </span>
-
-                    </label>
-
-
-                    <button
-                        type="submit"
-                        class="auth-submit"
-                    >
-
-                        <span>
-                            Sign in to TailorConnect
-                        </span>
-
-                        <span class="submit-arrow">
-                            →
-                        </span>
-
+                    <button type="submit" class="btn-primary auth-submit-btn">
+                        Sign In to TailorConnect <span class="btn-arrow">→</span>
                     </button>
-
                 </form>
 
-
-                <div style="text-align: center; margin-top: 22px; font-size: 0.92rem; color: #6b5c7a;">
-                    Don't have an account? 
-                    <a href="{{ url_for('auth.register') }}" style="color: #818cf8; font-weight: 700; text-decoration: none; margin-left: 4px;">
-                        Create an account →
-                    </a>
+                <div class="auth-footer-prompt">
+                    Don't have an account yet?
+                    <a href="{{ url_for('auth.register') }}">Create an account →</a>
                 </div>
 
-
-                <div class="auth-note">
-
-                    <span class="note-dot"></span>
-
-                    Your measurements stay private and secure.
-
+                <div class="auth-security-chip">
+                    <span>🔒 End-to-end private measurements & secure orders</span>
                 </div>
 
             </div>
-
-        </section>
+        </div>
 
     </div>
 
 </div>
-
 {% endblock %}
 
-
 {% block extra_js %}
-
 <script>
-
-document.addEventListener("DOMContentLoaded", function () {
-
-    const card = document.querySelector(".auth-card");
-
-    const visual = document.querySelector(".auth-visual");
-
-    if (card) {
-        card.classList.add("auth-ready");
-    }
-
-    if (visual) {
-        visual.classList.add("visual-ready");
-    }
-
-    const passwordInput =
-        document.getElementById("password");
-
-    const passwordToggle =
-        document.getElementById("passwordToggle");
-
-
-    if (passwordInput && passwordToggle) {
-
-        passwordToggle.addEventListener(
-            "click",
-            function () {
-
-                if (passwordInput.type === "password") {
-
-                    passwordInput.type = "text";
-
-                    passwordToggle.setAttribute(
-                        "aria-label",
-                        "Hide password"
-                    );
-
-                } else {
-
-                    passwordInput.type = "password";
-
-                    passwordToggle.setAttribute(
-                        "aria-label",
-                        "Show password"
-                    );
-
-                }
-
+document.addEventListener('DOMContentLoaded', () => {
+    // Password toggle
+    const pwdInput = document.getElementById('password');
+    const pwdToggle = document.getElementById('passwordToggle');
+    if (pwdInput && pwdToggle) {
+        pwdToggle.addEventListener('click', () => {
+            if (pwdInput.type === 'password') {
+                pwdInput.type = 'text';
+                pwdToggle.textContent = '🙈';
+            } else {
+                pwdInput.type = 'password';
+                pwdToggle.textContent = '👁️';
             }
-        );
-
+        });
     }
 
+    // Demo accounts quick-fill
+    const emailInput = document.getElementById('email');
+    const demoCustomerBtn = document.getElementById('demoCustomerBtn');
+    const demoTailorBtn = document.getElementById('demoTailorBtn');
 
-    const form =
-        document.querySelector(".auth-form");
-
-
-    if (form) {
-
-        form.addEventListener(
-            "submit",
-            function () {
-
-                const button =
-                    form.querySelector(".auth-submit");
-
-                if (button) {
-
-                    button.classList.add("loading");
-
-                    const text =
-                        button.querySelector(
-                            "span:first-child"
-                        );
-
-                    if (text) {
-                        text.textContent =
-                            "Signing you in...";
-                    }
-
-                }
-
-            }
-        );
-
+    if (demoCustomerBtn && emailInput && pwdInput) {
+        demoCustomerBtn.addEventListener('click', () => {
+            emailInput.value = 'arjun@example.com';
+            pwdInput.value = 'password123';
+            emailInput.focus();
+        });
     }
 
+    if (demoTailorBtn && emailInput && pwdInput) {
+        demoTailorBtn.addEventListener('click', () => {
+            emailInput.value = 'ravi@tailor.com';
+            pwdInput.value = 'password123';
+            emailInput.focus();
+        });
+    }
 });
 </script>
-
 {% endblock %}

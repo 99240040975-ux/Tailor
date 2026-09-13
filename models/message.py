@@ -50,6 +50,25 @@ class Message(db.Model):
         index=True,
     )
 
+    def __init__(
+        self,
+        sender_id=None,
+        receiver_id=None,
+        order_id=None,
+        message=None,
+        is_read=False,
+        **kwargs
+    ):
+        super().__init__(**kwargs)
+        if sender_id is not None:
+            self.sender_id = sender_id
+        if receiver_id is not None:
+            self.receiver_id = receiver_id
+        self.order_id = order_id
+        if message is not None:
+            self.message = message
+        self.is_read = is_read
+
     # --------------------------------------------------------
     # Helpers
     # --------------------------------------------------------

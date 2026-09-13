@@ -63,15 +63,16 @@
                         </a>
                     {% endif %}
                 {% else %}
-                    <button class="btn-primary" id="enterTailorButton" type="button">
+                    <a href="{{ url_for('auth.register') }}" class="btn-primary">
                         Get Started <span class="btn-arrow">→</span>
-                    </button>
+                    </a>
                     <a href="{{ url_for('auth.login') }}" class="btn-ghost">
                         Sign in
                     </a>
                 {% endif %}
             </div>
 
+            {% if current_user.is_authenticated %}
             <form action="{{ url_for('customer.tailors') }}" method="GET" style="margin: 22px 0 16px; max-width: 460px; position: relative;">
                 <div style="display: flex; gap: 8px; background: rgba(255, 255, 255, 0.95); border: 1.5px solid rgba(129, 140, 248, 0.35); border-radius: 14px; padding: 6px 8px 6px 14px; box-shadow: 0 12px 30px rgba(100, 60, 180, 0.14); align-items: center;">
                     <span style="font-size: 1.15rem; flex-shrink: 0;">📍</span>
@@ -84,6 +85,11 @@
                     🏛️ Live search across 38 districts & 313 taluks in Tamil Nadu
                 </div>
             </form>
+            {% else %}
+            <div style="margin: 24px 0 12px; display: inline-flex; align-items: center; gap: 10px; padding: 10px 18px; border-radius: 12px; background: rgba(255,255,255,0.85); border: 1px solid rgba(129,140,248,0.25); box-shadow: 0 6px 20px rgba(100,60,180,0.06); font-size: 0.85rem; color: #4b3f62;">
+                <span>✨ Sign in to access live Tamil Nadu tailor locations, digital vaults & direct booking.</span>
+            </div>
+            {% endif %}
 
             <div class="hero-trust">
                 <span>✓ Personal measurements</span>

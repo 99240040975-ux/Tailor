@@ -131,6 +131,7 @@ def profile():
 # ------------------------------------------------------------
 
 @customer_bp.route("/tailors")
+@login_required
 def tailors():
     """
     Discover active local tailors.

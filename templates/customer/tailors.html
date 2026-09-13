@@ -1,9 +1,215 @@
 {% extends "base.html" %}
 
-{% block title %}Discover Local Tailors | Local Tailor Connect{% endblock %}
+{% block title %}Live Tamil Nadu Tailors Map & Discovery | TailorConnect{% endblock %}
 
 {% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/3d-home.css') }}">
 <style>
+/* ── Map Container & Custom Markers ── */
+.map-section-wrapper {
+    position: relative;
+    margin-bottom: 2.2rem;
+    border-radius: 24px;
+    background: #ffffff;
+    border: 1.5px solid rgba(129, 140, 248, 0.25);
+    padding: 1.4rem;
+    box-shadow: 0 20px 60px rgba(100, 60, 180, 0.1);
+}
+
+.map-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+#tnTailorMap {
+    height: 480px;
+    width: 100%;
+    border-radius: 18px;
+    z-index: 1;
+    box-shadow: inset 0 2px 6px rgba(0,0,0,0.08);
+}
+
+/* Custom Marker Pin */
+.tailor-marker-pin {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #f472b6, #818cf8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    font-size: 1.15rem;
+    box-shadow: 0 6px 18px rgba(244, 114, 182, 0.45);
+    border: 2.5px solid #ffffff;
+    cursor: pointer;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.tailor-marker-pin:hover, .tailor-marker-pin.active-pin {
+    transform: scale(1.22) translateY(-4px);
+    box-shadow: 0 12px 28px rgba(244, 114, 182, 0.6);
+}
+
+.user-marker-pin {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #3b82f6;
+    border: 3px solid #ffffff;
+    box-shadow: 0 0 0 6px rgba(59, 130, 246, 0.35);
+    animation: userPulse 1.8s infinite;
+}
+
+@keyframes userPulse {
+    0% { box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.4); }
+    50% { box-shadow: 0 0 0 14px rgba(59, 130, 246, 0); }
+    100% { box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.4); }
+}
+
+/* Leaflet Popup Styling */
+.leaflet-popup-content-wrapper {
+    border-radius: 16px;
+    padding: 4px;
+    box-shadow: 0 16px 40px rgba(40, 20, 70, 0.22);
+    border: 1.5px solid rgba(129, 140, 248, 0.3);
+}
+
+.popup-tailor-content {
+    font-family: inherit;
+    padding: 6px;
+    min-width: 220px;
+}
+
+.popup-tailor-title {
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: #1e1030;
+    margin: 0 0 4px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.popup-tailor-city {
+    font-size: 0.8rem;
+    color: #6b5c7a;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.popup-spec-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin: 8px 0;
+}
+
+.popup-tag {
+    background: rgba(129, 140, 248, 0.12);
+    color: #4338ca;
+    padding: 2px 7px;
+    border-radius: 6px;
+    font-size: 0.72rem;
+    font-weight: 700;
+}
+
+.popup-distance-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #ecfdf5;
+    color: #059669;
+    border: 1px solid #a7f3d0;
+    padding: 3px 8px;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    margin-bottom: 8px;
+}
+
+.popup-select-btn {
+    display: block;
+    width: 100%;
+    text-align: center;
+    background: linear-gradient(135deg, #f472b6, #818cf8);
+    color: #ffffff !important;
+    padding: 8px 12px;
+    border-radius: 10px;
+    font-size: 0.84rem;
+    font-weight: 800;
+    text-decoration: none;
+    box-shadow: 0 4px 14px rgba(244, 114, 182, 0.35);
+    margin-top: 8px;
+    transition: transform 0.2s;
+}
+
+.popup-select-btn:hover {
+    transform: translateY(-2px);
+}
+
+/* District Pills */
+.district-quick-bar {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 6px 2px 10px;
+    scrollbar-width: thin;
+}
+
+.district-pill {
+    background: #f8f4ff;
+    border: 1px solid rgba(129, 140, 248, 0.25);
+    border-radius: 100px;
+    padding: 6px 14px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #4b3f62;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+}
+
+.district-pill:hover, .district-pill.active {
+    background: linear-gradient(135deg, #f472b6, #818cf8);
+    color: #ffffff;
+    border-color: transparent;
+    box-shadow: 0 4px 14px rgba(244, 114, 182, 0.3);
+}
+
+/* Card Selection Highlight */
+.tailor-card.selected-tailor {
+    border-color: #f472b6 !important;
+    box-shadow: 0 0 0 3px rgba(244, 114, 182, 0.35), 0 20px 45px rgba(244, 114, 182, 0.15) !important;
+    animation: highlightPulse 1.2s ease-in-out;
+}
+
+@keyframes highlightPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+    100% { transform: scale(1); }
+}
+
+.distance-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(16, 185, 129, 0.1);
+    color: #059669;
+    border: 1px solid rgba(16, 185, 129, 0.25);
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 0.74rem;
+    font-weight: 800;
+}
+
 .location-suggestions-dropdown {
     position: absolute;
     top: calc(100% + 6px);
@@ -25,221 +231,487 @@
     padding: 10px 14px;
     border-radius: 8px;
     cursor: pointer;
-    transition: background 0.15s ease, color 0.15s ease;
     color: #1e1030;
     font-size: 0.9rem;
+    transition: background 0.15s ease;
 }
 .location-suggestion-item:hover, .location-suggestion-item.active {
     background: rgba(129, 140, 248, 0.12);
     color: #4338ca;
 }
-.suggestion-icon {
-    font-size: 1.15rem;
-    flex-shrink: 0;
-}
-.suggestion-text {
-    display: flex;
-    flex-direction: column;
-}
-.suggestion-name {
-    font-weight: 700;
-}
-.suggestion-meta {
-    font-size: 0.74rem;
-    color: #64748b;
-    margin-top: 1px;
-}
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container">
-    <div class="dashboard-header">
-        <div class="dashboard-title">
-            <h1>Discover <span class="gradient-text">Local Tailors</span></h1>
-            <p>Find master artisans, specialists in ethnic wear, suits, and quick alterations across Tamil Nadu.</p>
+<div class="container" style="padding-top: 1.5rem;">
+
+    <!-- Header Section -->
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
+        <div>
+            <div class="hero-pill" style="margin-bottom: 10px;">
+                <span class="pill-dot" aria-hidden="true"></span>
+                LIVE TAMIL NADU TAILOR DIRECTORY
+            </div>
+            <h1 style="font-size: 2.5rem; font-family: 'Playfair Display', serif; margin: 0 0 6px;">
+                Find & Select <span class="gradient-text">Master Tailors</span>
+            </h1>
+            <p style="color: #6b5c7a; margin: 0; font-size: 0.95rem;">
+                Browse live tailor studios across Tamil Nadu's 38 districts. Click any tailor on the map to select directly!
+            </p>
+        </div>
+
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <button type="button" class="btn btn-secondary" id="locateMeBtn" style="display: inline-flex; align-items: center; gap: 6px; font-weight: 700;">
+                📍 Locate Me & Find Nearest
+            </button>
+            <a href="{{ url_for('orders.create_order') }}" class="btn btn-primary" style="font-weight: 700;">
+                + Request Custom Order ✂️
+            </a>
         </div>
     </div>
 
-    <!-- Search & Location Hierarchy Filter Bar -->
-    <div class="glass-card" style="margin-bottom: 32px; padding: 24px;">
-        <form method="GET" action="{{ url_for('customer.tailors') }}" id="tailorSearchForm" style="display: flex; flex-direction: column; gap: 18px;">
-            
-            <!-- Live Tamil Nadu Location Search (Type state, district, city, taluk, village) -->
+    <!-- =========================================================
+         LIVE TAMIL NADU TAILOR MAP SECTION
+         ========================================================= -->
+    <div class="map-section-wrapper">
+        <div class="map-header-row">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 1.3rem;">🗺️</span>
+                <div>
+                    <h3 style="margin: 0; font-size: 1.1rem; color: #1e1030;">Live Tamil Nadu Interactive Studio Map</h3>
+                    <span id="mapStatusSubtitle" style="font-size: 0.8rem; color: #6b5c7a;">
+                        Showing {{ tailors|length }} active studios in Tamil Nadu. Click any pin to view & select directly.
+                    </span>
+                </div>
+            </div>
+
+            <div style="font-size: 0.82rem; font-weight: 700; color: #818cf8; background: rgba(129, 140, 248, 0.1); padding: 5px 12px; border-radius: 100px;">
+                🏛️ 38 Districts & 313 Taluks Coverage
+            </div>
+        </div>
+
+        <!-- Quick Tamil Nadu District Filter Pills -->
+        <div class="district-quick-bar" id="districtPillBar">
+            <button type="button" class="district-pill active" data-district="all" data-lat="10.95" data-lng="78.4" data-zoom="7">
+                🏛️ All Tamil Nadu ({{ tailors|length }})
+            </button>
+            <button type="button" class="district-pill" data-district="Chennai" data-lat="13.0827" data-lng="80.2707" data-zoom="12">
+                📍 Chennai
+            </button>
+            <button type="button" class="district-pill" data-district="Madurai" data-lat="9.9252" data-lng="78.1198" data-zoom="12">
+                📍 Madurai
+            </button>
+            <button type="button" class="district-pill" data-district="Coimbatore" data-lat="11.0168" data-lng="76.9558" data-zoom="12">
+                📍 Coimbatore
+            </button>
+            <button type="button" class="district-pill" data-district="Tiruchirappalli" data-lat="10.7905" data-lng="78.7047" data-zoom="12">
+                📍 Tiruchirappalli
+            </button>
+            <button type="button" class="district-pill" data-district="Salem" data-lat="11.6643" data-lng="78.1460" data-zoom="12">
+                📍 Salem
+            </button>
+            <button type="button" class="district-pill" data-district="Tirunelveli" data-lat="8.7139" data-lng="77.7567" data-zoom="12">
+                📍 Tirunelveli
+            </button>
+            <button type="button" class="district-pill" data-district="Erode" data-lat="11.3410" data-lng="77.7172" data-zoom="12">
+                📍 Erode
+            </button>
+            <button type="button" class="district-pill" data-district="Kanchipuram" data-lat="12.8342" data-lng="79.7036" data-zoom="12">
+                📍 Kanchipuram
+            </button>
+            <button type="button" class="district-pill" data-district="Vellore" data-lat="12.9165" data-lng="79.1325" data-zoom="12">
+                📍 Vellore
+            </button>
+            <button type="button" class="district-pill" data-district="Thanjavur" data-lat="10.7870" data-lng="79.1378" data-zoom="12">
+                📍 Thanjavur
+            </button>
+            <button type="button" class="district-pill" data-district="Tiruppur" data-lat="11.1085" data-lng="77.3411" data-zoom="12">
+                📍 Tiruppur
+            </button>
+            <button type="button" class="district-pill" data-district="Dindigul" data-lat="10.3673" data-lng="77.9803" data-zoom="12">
+                📍 Dindigul
+            </button>
+        </div>
+
+        <!-- The Leaflet Map Canvas -->
+        <div id="tnTailorMap"></div>
+    </div>
+
+    <!-- Search & Keyword Filter Bar -->
+    <div class="glass-card" style="margin-bottom: 32px; padding: 22px; border-radius: 20px; border: 1.5px solid rgba(129, 140, 248, 0.2);">
+        <form method="GET" action="{{ url_for('customer.tailors') }}" id="tailorSearchForm" style="display: flex; flex-direction: column; gap: 16px;">
             <div style="position: relative;">
-                <label style="display: block; font-size: 0.84rem; font-weight: 700; color: var(--primary); margin-bottom: 6px; letter-spacing: 0.5px;">
-                    📍 LIVE TAMIL NADU LOCATION SEARCH (TYPE CITY, TALUK, OR PLACE):
+                <label style="display: block; font-size: 0.82rem; font-weight: 700; color: #818cf8; margin-bottom: 6px; letter-spacing: 0.5px;">
+                    📍 SEARCH CITY, TALUK OR GARMENT STYLE IN TAMIL NADU:
                 </label>
-                <div style="display: flex; gap: 10px; align-items: center;">
-                    <div style="position: relative; flex: 1;">
+                <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                    <div style="position: relative; flex: 2; min-width: 260px;">
                         <input type="text" 
                                id="location_typeahead" 
                                name="location_q" 
                                class="form-control" 
-                               placeholder="Type any place in Tamil Nadu (e.g. Madurai, Chennai, Coimbatore, Anna Nagar, T. Nagar, Pollachi...)" 
+                               placeholder="Type any place in Tamil Nadu (e.g. Madurai, Chennai, Coimbatore, Mylapore, T. Nagar...)" 
                                value="{{ location_q or '' }}"
                                autocomplete="off"
-                               style="padding-left: 40px; font-size: 0.95rem;">
-                        <span style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 1.15rem; pointer-events: none;">📍</span>
+                               style="padding-left: 40px; font-size: 0.92rem; border-radius: 12px;">
+                        <span style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 1.1rem; pointer-events: none;">📍</span>
                         <div id="location_suggestions" class="location-suggestions-dropdown" style="display: none;"></div>
                     </div>
-                    <button type="submit" class="btn btn-primary" style="padding: 10px 22px; font-weight: 700;">Find Near Me</button>
-                </div>
-                <div style="font-size: 0.76rem; color: var(--text-muted); margin-top: 5px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px;">
-                    <span>⚡ Instant autocomplete across all 38 districts, 313 taluks, and 18,482 revenue villages in Tamil Nadu.</span>
-                    {% if location_q %}
-                        <span style="color: var(--primary); font-weight: 600; background: rgba(129,140,248,0.12); padding: 2px 8px; border-radius: 6px;">
-                            Active Location: "{{ location_q }}"
-                        </span>
+
+                    <input type="text" name="q" class="form-control" style="flex: 1.5; min-width: 200px; border-radius: 12px;" placeholder="Filter by specialty (e.g. Silk Blouse, Suit)..." value="{{ search_q or '' }}">
+
+                    <select name="sort" id="sortSelect" class="form-control" style="flex: 1; min-width: 150px; border-radius: 12px;">
+                        <option value="rating_desc" {% if selected_sort == 'rating_desc' %}selected{% endif %}>Highest Rated</option>
+                        <option value="experience_desc" {% if selected_sort == 'experience_desc' %}selected{% endif %}>Most Experienced</option>
+                        <option value="reviews_desc" {% if selected_sort == 'reviews_desc' %}selected{% endif %}>Most Reviews</option>
+                    </select>
+
+                    <button type="submit" class="btn btn-primary" style="padding: 11px 22px; font-weight: 700; border-radius: 12px;">Filter 🔍</button>
+                    {% if search_q or location_q %}
+                        <a href="{{ url_for('customer.tailors') }}" class="btn btn-ghost" style="padding: 11px 16px; font-size: 0.85rem;">✕ Reset</a>
                     {% endif %}
                 </div>
-            </div>
-
-            <!-- General keyword search and sort -->
-            <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-                <input type="text" name="q" class="form-control" style="flex: 2; min-width: 240px;" placeholder="Filter by garment, specialty (e.g. Silk Blouse, Suit, Kurta, Alteration)..." value="{{ search_q or '' }}">
-
-                <select name="sort" class="form-control" style="flex: 1; min-width: 160px;">
-                    <option value="rating_desc" {% if selected_sort == 'rating_desc' %}selected{% endif %}>Highest Rated</option>
-                    <option value="experience_desc" {% if selected_sort == 'experience_desc' %}selected{% endif %}>Most Experienced</option>
-                    <option value="reviews_desc" {% if selected_sort == 'reviews_desc' %}selected{% endif %}>Most Reviews</option>
-                </select>
-
-                <button type="submit" class="btn btn-secondary" style="min-width: 110px;">Filter 🔍</button>
-            </div>
-
-            <!-- Optional Cascading Dropdowns Toggle -->
-            <details style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-glass); border-radius: 10px; padding: 12px 16px;">
-                <summary style="cursor: pointer; font-size: 0.82rem; font-weight: 600; color: var(--text-secondary); outline: none;">
-                    ▼ Or Browse by Administrative Dropdowns (State / District / Taluk / Village)
-                </summary>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-top: 12px;">
-                    <!-- State (Default TN) -->
-                    <select id="state_id" name="state_id" class="form-control" style="font-size: 0.85rem;">
-                        <option value="">Loading States...</option>
-                    </select>
-
-                    <!-- District -->
-                    <select id="district_id" name="district_id" class="form-control" style="font-size: 0.85rem;" disabled>
-                        <option value="">-- All Districts (38) --</option>
-                        {% for d in districts %}
-                            <option value="{{ d.id }}" {% if selected_district == d.id %}selected{% endif %}>{{ d.name }}</option>
-                        {% endfor %}
-                    </select>
-
-                    <!-- Taluk -->
-                    <select id="taluk_id" name="taluk_id" class="form-control" style="font-size: 0.85rem;" disabled>
-                        <option value="">-- All Taluks --</option>
-                    </select>
-
-                    <!-- City / Town -->
-                    <select id="city_town_id" class="form-control" style="font-size: 0.85rem;" disabled>
-                        <option value="">-- All Cities / Towns --</option>
-                    </select>
-                    <input type="hidden" id="city_id" name="city_id" value="{{ request.args.get('city_id', '') }}">
-                    <input type="hidden" id="town_id" name="town_id" value="{{ request.args.get('town_id', '') }}">
-
-                    <!-- Village -->
-                    <select id="village_id" name="village_id" class="form-control" style="font-size: 0.85rem;" disabled>
-                        <option value="">-- All Villages --</option>
-                    </select>
-                </div>
-            </details>
-
-            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; padding-top: 4px;">
-                <div style="display: flex; gap: 16px; align-items: center;">
-                    <label style="display: flex; align-items: center; gap: 8px; font-size: 0.88rem; color: var(--text-secondary); cursor: pointer;">
-                        <input type="checkbox" name="available" value="1" {% if available_only %}checked{% endif %}>
-                        Available for Orders Only
-                    </label>
-                </div>
-                {% if search_q or location_q or selected_district or selected_taluk or available_only or request.args.get('city_id') or request.args.get('town_id') or request.args.get('village_id') %}
-                    <a href="{{ url_for('customer.tailors') }}" style="font-size: 0.85rem; color: var(--danger); text-decoration: none;">✕ Clear All Filters</a>
-                {% endif %}
             </div>
         </form>
     </div>
 
     <!-- Tailors Grid -->
+    <div style="margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center;">
+        <h2 style="font-size: 1.35rem; margin: 0; color: #1e1030;">
+            Tailor Studios in Tamil Nadu <span style="font-size: 0.95rem; color: #6b5c7a; font-weight: 500;">({{ tailors|length }} found)</span>
+        </h2>
+        <span style="font-size: 0.85rem; color: #6b5c7a;">💡 Click "Show on Map" to pan to any tailor studio.</span>
+    </div>
+
     {% if tailors %}
-        <div class="tailors-grid">
+        <div class="tailors-grid" id="tailorsCardsGrid">
             {% for tailor in tailors %}
-            <div class="tailor-card">
+            <div class="tailor-card" id="tailor-card-{{ tailor.id }}" data-tailor-id="{{ tailor.id }}" data-city="{{ tailor.city }}" style="border-radius: 20px; border: 1.5px solid rgba(129,140,248,0.2); transition: all 0.25s ease;">
                 <div>
                     <div class="tailor-top">
-                        <div class="tailor-avatar">
-                            {% if tailor.user.profile_pic %}
-                                <img src="{{ url_for('static', filename=tailor.user.profile_pic) }}" alt="{{ tailor.shop_name }}" style="width: 100%; height: 100%; object-fit: cover; border-radius: var(--radius-sm);">
-                            {% else %}
-                                ✂️
-                            {% endif %}
+                        <div class="tailor-avatar" style="font-size: 1.6rem; display: grid; place-items: center; background: rgba(129,140,248,0.12); border-radius: 14px;">
+                            ✂️
                         </div>
-                        <div>
-                            <div style="display: flex; align-items: center; gap: 6px;">
-                                <h3 style="font-size: 1.15rem;">{{ tailor.shop_name }}</h3>
+                        <div style="flex: 1;">
+                            <div style="display: flex; align-items: center; justify-content: space-between;">
+                                <h3 style="font-size: 1.15rem; margin: 0; color: #1e1030;">{{ tailor.shop_name }}</h3>
                                 {% if tailor.is_verified %}
-                                    <span title="Verified Artisan" style="color: #60a5fa; font-size: 1rem;">✓</span>
+                                    <span title="Verified Artisan" style="color: #3b82f6; font-size: 0.95rem; font-weight: 800;">✓ Verified</span>
                                 {% endif %}
                             </div>
-                            <div style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 2px;">
-                                📍 {{ tailor.location_display }} &bull; {{ tailor.experience }} yrs exp.
+                            <div style="color: #6b5c7a; font-size: 0.85rem; margin-top: 3px;">
+                                📍 {{ tailor.city or 'Tamil Nadu' }} &bull; {{ tailor.experience }} yrs experience
                             </div>
-                            <div class="rating-stars" style="margin-top: 6px;">
-                                ★ <span class="rating-score">{{ tailor.rating }}</span>
-                                <span style="color: var(--text-muted); font-size: 0.8rem;">({{ tailor.total_reviews }} reviews)</span>
+                            <div style="display: flex; align-items: center; gap: 8px; margin-top: 5px;">
+                                <span style="color: #f59e0b; font-weight: 700; font-size: 0.88rem;">★ {{ tailor.rating }}</span>
+                                <span style="color: #94a3b8; font-size: 0.78rem;">({{ tailor.total_reviews }} reviews)</span>
+                                <span class="distance-tag" id="dist-tag-{{ tailor.id }}" style="display: none;"></span>
                             </div>
                         </div>
                     </div>
 
-                    <p style="color: var(--text-secondary); font-size: 0.88rem; line-height: 1.45; margin-bottom: 12px;">
-                        {{ tailor.description[:120] if tailor.description else 'Specializing in custom design, fitting alterations, and traditional bespoke tailoring.' }}...
-                    </p>
+                    <div style="font-size: 0.82rem; color: #475569; margin: 10px 0 6px; line-height: 1.4;">
+                        <strong>Address:</strong> {{ tailor.address or 'Studio in Tamil Nadu' }}
+                    </div>
 
-                    <div class="tailor-tags">
+                    <div class="tailor-tags" style="margin-top: 8px;">
                         {% if tailor.specialization %}
-                            {% for spec in tailor.specialization.split(',') %}
+                            {% for spec in tailor.specialization.split(',')[:3] %}
                                 <span class="tailor-tag">{{ spec.strip() }}</span>
                             {% endfor %}
                         {% endif %}
                     </div>
                 </div>
 
-                <div style="border-top: 1px solid var(--border-glass); padding-top: 16px; margin-top: 10px; display: flex; justify-content: space-between; align-items: center;">
+                <div style="border-top: 1px solid rgba(129,140,248,0.15); padding-top: 14px; margin-top: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
                     <div>
-                        <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">Estimated Price</div>
-                        <span style="font-weight: 700; color: var(--text-primary); font-size: 0.95rem;">
+                        <div style="font-size: 0.72rem; color: #94a3b8; text-transform: uppercase;">Estimated Price</div>
+                        <span style="font-weight: 700; color: #1e1030; font-size: 0.95rem;">
                             {{ tailor.price_range or 'Custom quote' }}
                         </span>
                     </div>
                     <div style="display: flex; gap: 8px;">
-                        <a href="{{ url_for('customer.tailor_details', tailor_id=tailor.id) }}" class="btn btn-secondary btn-sm">Profile</a>
-                        <a href="{{ url_for('orders.create_order', tailor_id=tailor.id) }}" class="btn btn-primary btn-sm">Order</a>
+                        <button type="button" class="btn btn-outline btn-sm show-on-map-btn" data-tailor-id="{{ tailor.id }}" style="border-radius: 8px;">
+                            🗺️ Map
+                        </button>
+                        <a href="{{ url_for('orders.create_order', tailor_id=tailor.id) }}" class="btn btn-primary btn-sm" style="border-radius: 8px; font-weight: 700;">
+                            Select Tailor ✂️
+                        </a>
                     </div>
                 </div>
             </div>
             {% endfor %}
         </div>
     {% else %}
-        <div class="glass-card" style="text-align: center; padding: 60px 20px;">
+        <div class="glass-card" style="text-align: center; padding: 60px 20px; border-radius: 20px;">
             <div style="font-size: 48px; margin-bottom: 16px;">🔍</div>
-            <h3 style="font-size: 1.3rem; margin-bottom: 8px;">No registered tailors found in this location.</h3>
-            <p style="color: var(--text-secondary); max-width: 480px; margin: 8px auto 24px;">
-                There are currently no active tailors matching your selected administrative location or filters. Try selecting a nearby district or taluk, or reset your search.
+            <h3 style="font-size: 1.3rem; margin-bottom: 8px;">No tailors found matching your search.</h3>
+            <p style="color: #6b5c7a; max-width: 480px; margin: 8px auto 24px;">
+                Try selecting a different district like Chennai, Madurai, or Coimbatore from the map bar above, or reset your search query.
             </p>
-            <a href="{{ url_for('customer.tailors') }}" class="btn btn-primary">Reset All Filters</a>
+            <a href="{{ url_for('customer.tailors') }}" class="btn btn-primary">View All Tamil Nadu Tailors</a>
         </div>
     {% endif %}
 </div>
+
+<!-- Tailors JSON Data for Leaflet Map -->
+<script id="tailorsData" type="application/json">
+[
+    {% for tailor in tailors %}
+        {
+            "id": {{ tailor.id }},
+            "shop_name": {{ tailor.shop_name|tojson }},
+            "city": {{ (tailor.city or 'Tamil Nadu')|tojson }},
+            "address": {{ (tailor.address or '')|tojson }},
+            "lat": {{ tailor.latitude if tailor.latitude else 10.95 }},
+            "lng": {{ tailor.longitude if tailor.longitude else 78.4 }},
+            "rating": {{ tailor.rating or 4.8 }},
+            "reviews": {{ tailor.total_reviews or 25 }},
+            "experience": {{ tailor.experience or 10 }},
+            "specialization": {{ (tailor.specialization or '')|tojson }},
+            "price_range": {{ (tailor.price_range or 'Custom Quote')|tojson }},
+            "order_url": {{ url_for('orders.create_order', tailor_id=tailor.id)|tojson }},
+            "profile_url": {{ url_for('customer.tailor_details', tailor_id=tailor.id)|tojson }}
+        }{% if not loop.last %},{% endif %}
+    {% endfor %}
+]
+</script>
 {% endblock %}
 
 {% block extra_js %}
+<!-- Leaflet JS CDN -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <script src="{{ url_for('static', filename='js/location_cascade.js') }}"></script>
+
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-    // ── Live Tamil Nadu Location Autocomplete ──────────────────────
+    // 1. Read Tailor Data
+    const tailorsDataScript = document.getElementById('tailorsData');
+    if (!tailorsDataScript) return;
+
+    let tailors = [];
+    try {
+        tailors = JSON.parse(tailorsDataScript.textContent);
+    } catch(e) {
+        console.error('Failed to parse tailors JSON', e);
+    }
+
+    // 2. Initialize Leaflet Map Centered on Tamil Nadu
+    const map = L.map('tnTailorMap', {
+        zoomControl: true,
+        scrollWheelZoom: true
+    }).setView([10.95, 78.45], 7);
+
+    // High quality light/pastel tiles (Voyager)
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; <a href="https://carto.com/">CARTO</a> &copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>',
+        maxZoom: 19,
+        subdomains: 'abcd'
+    }).addTo(map);
+
+    // Markers lookup
+    const markers = {};
+    let userMarker = null;
+    let userCoords = null;
+
+    // Helper: Haversine distance in km
+    function calculateDistance(lat1, lon1, lat2, lon2) {
+        const R = 6371; // Radius of earth in km
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a = 
+            Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+            Math.sin(dLon/2) * Math.sin(dLon/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        return Math.round(R * c * 10) / 10;
+    }
+
+    // 3. Render Tailor Markers on Map
+    tailors.forEach(t => {
+        if (!t.lat || !t.lng) return;
+
+        const customIcon = L.divIcon({
+            className: 'custom-leaflet-marker',
+            html: `<div class="tailor-marker-pin" id="map-pin-${t.id}">✂️</div>`,
+            iconSize: [38, 38],
+            iconAnchor: [19, 19],
+            popupAnchor: [0, -22]
+        });
+
+        const specsHtml = t.specialization 
+            ? t.specialization.split(',').slice(0, 3).map(s => `<span class="popup-tag">${s.trim()}</span>`).join('')
+            : '';
+
+        const popupHtml = `
+            <div class="popup-tailor-content">
+                <div class="popup-tailor-title">
+                    <span>${t.shop_name}</span>
+                    <span style="color: #3b82f6; font-size: 0.9rem;">✓</span>
+                </div>
+                <div class="popup-tailor-city">📍 ${t.address || t.city}</div>
+                <div style="font-size: 0.8rem; color: #f59e0b; font-weight: 700; margin-bottom: 4px;">
+                    ★ ${t.rating} <span style="color: #64748b; font-weight: normal;">(${t.reviews} reviews &bull; ${t.experience} yrs exp)</span>
+                </div>
+                <div id="popup-dist-${t.id}" class="popup-distance-badge" style="display: none;"></div>
+                <div class="popup-spec-tags">${specsHtml}</div>
+                <div style="font-size: 0.78rem; font-weight: 700; color: #1e1030; margin-top: 4px;">
+                    Estimated: ${t.price_range}
+                </div>
+                <a href="${t.order_url}" class="popup-select-btn">
+                    Select This Tailor ✂️
+                </a>
+            </div>
+        `;
+
+        const marker = L.marker([t.lat, t.lng], { icon: customIcon }).addTo(map);
+        marker.bindPopup(popupHtml);
+
+        // Click marker: highlight card
+        marker.on('click', () => {
+            highlightTailorCard(t.id);
+        });
+
+        markers[t.id] = marker;
+    });
+
+    // 4. Highlight tailor card & scroll smoothly
+    function highlightTailorCard(tailorId) {
+        document.querySelectorAll('.tailor-card').forEach(c => c.classList.remove('selected-tailor'));
+        const card = document.getElementById(`tailor-card-${tailorId}`);
+        if (card) {
+            card.classList.add('selected-tailor');
+            card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }
+
+    // 5. "Show on Map" button in card click handler
+    document.querySelectorAll('.show-on-map-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const id = btn.getAttribute('data-tailor-id');
+            const marker = markers[id];
+            if (marker) {
+                map.setView(marker.getLatLng(), 14, { animate: true });
+                marker.openPopup();
+                highlightTailorCard(id);
+                // Scroll up slightly to view map
+                window.scrollTo({ top: document.querySelector('.map-section-wrapper').offsetTop - 90, behavior: 'smooth' });
+            }
+        });
+    });
+
+    // 6. District Quick Filter Pills
+    const pills = document.querySelectorAll('.district-pill');
+    pills.forEach(pill => {
+        pill.addEventListener('click', () => {
+            pills.forEach(p => p.classList.remove('active'));
+            pill.classList.add('active');
+
+            const dist = pill.getAttribute('data-district');
+            const lat = parseFloat(pill.getAttribute('data-lat'));
+            const lng = parseFloat(pill.getAttribute('data-lng'));
+            const zoom = parseInt(pill.getAttribute('data-zoom'));
+
+            map.setView([lat, lng], zoom, { animate: true });
+
+            // Filter cards in grid
+            const cards = document.querySelectorAll('.tailor-card');
+            cards.forEach(card => {
+                const cardCity = card.getAttribute('data-city');
+                if (dist === 'all' || (cardCity && cardCity.toLowerCase().includes(dist.toLowerCase()))) {
+                    card.style.display = 'flex';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            document.getElementById('mapStatusSubtitle').textContent = dist === 'all'
+                ? `Showing ${tailors.length} active studios across Tamil Nadu.`
+                : `Zoomed to ${dist} & showing matching local studios.`;
+        });
+    });
+
+    // 7. "Locate Me & Find Nearest" Geolocation Feature
+    const locateBtn = document.getElementById('locateMeBtn');
+    if (locateBtn) {
+        locateBtn.addEventListener('click', () => {
+            locateBtn.textContent = '🔄 Locating you...';
+
+            function handleLocationFound(lat, lng) {
+                userCoords = { lat, lng };
+
+                // Place or update user beacon
+                if (userMarker) {
+                    userMarker.setLatLng([lat, lng]);
+                } else {
+                    const userIcon = L.divIcon({
+                        className: 'custom-user-marker',
+                        html: '<div class="user-marker-pin" title="Your Location"></div>',
+                        iconSize: [28, 28],
+                        iconAnchor: [14, 14]
+                    });
+                    userMarker = L.marker([lat, lng], { icon: userIcon }).addTo(map);
+                    userMarker.bindPopup('<b>📍 Your Current Location</b><br>Calculating nearest Tamil Nadu tailors...').openPopup();
+                }
+
+                map.setView([lat, lng], 11, { animate: true });
+
+                // Calculate distances and update UI
+                tailors.forEach(t => {
+                    if (t.lat && t.lng) {
+                        t.distance = calculateDistance(lat, lng, t.lat, t.lng);
+                        
+                        // Update card distance badge
+                        const distTag = document.getElementById(`dist-tag-${t.id}`);
+                        if (distTag) {
+                            distTag.textContent = `📍 ${t.distance} km away`;
+                            distTag.style.display = 'inline-flex';
+                        }
+
+                        // Update popup distance badge
+                        const popupDist = document.getElementById(`popup-dist-${t.id}`);
+                        if (popupDist) {
+                            popupDist.textContent = `⚡ ${t.distance} km from your location`;
+                            popupDist.style.display = 'inline-flex';
+                        }
+                    }
+                });
+
+                // Sort cards by distance
+                const grid = document.getElementById('tailorsCardsGrid');
+                if (grid) {
+                    const sortedTailors = [...tailors].sort((a, b) => (a.distance || 9999) - (b.distance || 9999));
+                    sortedTailors.forEach(t => {
+                        const card = document.getElementById(`tailor-card-${t.id}`);
+                        if (card) grid.appendChild(card);
+                    });
+                }
+
+                locateBtn.textContent = '✓ Located! Sorted by Nearest';
+                document.getElementById('mapStatusSubtitle').textContent = '📍 Sorted by distance from your current location in Tamil Nadu.';
+            }
+
+            if ('geolocation' in navigator) {
+                navigator.geolocation.getCurrentPosition(
+                    pos => {
+                        handleLocationFound(pos.coords.latitude, pos.coords.longitude);
+                    },
+                    err => {
+                        console.warn('Geolocation denied or unavailable. Using default Chennai center for demo.', err);
+                        // Default to Chennai, Tamil Nadu center
+                        handleLocationFound(13.0418, 80.2341);
+                    },
+                    { timeout: 7000 }
+                );
+            } else {
+                handleLocationFound(13.0418, 80.2341);
+            }
+        });
+    }
+
+    // 8. Location Typeahead Input
     const locInput = document.getElementById('location_typeahead');
     const suggestionsBox = document.getElementById('location_suggestions');
-    const searchForm = document.getElementById('tailorSearchForm');
     let debounceTimer = null;
 
     if (locInput && suggestionsBox) {
@@ -249,97 +721,50 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (query.length < 2) {
                 suggestionsBox.style.display = 'none';
-                suggestionsBox.innerHTML = '';
                 return;
             }
 
-            debounceTimer = setTimeout(async () => {
-                try {
-                    const resp = await fetch(`/api/locations/search?q=${encodeURIComponent(query)}`);
-                    if (!resp.ok) return;
-                    const data = await resp.json();
+            debounceTimer = setTimeout(() => {
+                fetch(`/api/locations/search?q=${encodeURIComponent(query)}&limit=8`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (!data.results || data.results.length === 0) {
+                            suggestionsBox.innerHTML = '<div style="padding: 10px; color: #64748b; font-size: 0.85rem;">No matching Tamil Nadu places found.</div>';
+                            suggestionsBox.style.display = 'block';
+                            return;
+                        }
 
-                    if (!data || data.length === 0) {
-                        suggestionsBox.innerHTML = `
-                            <div style="padding: 10px 14px; color: #64748b; font-size: 0.85rem; text-align: center;">
-                                No Tamil Nadu places matching "${query}"
-                            </div>`;
-                        suggestionsBox.style.display = 'block';
-                        return;
-                    }
-
-                    suggestionsBox.innerHTML = '';
-                    data.forEach(item => {
-                        const div = document.createElement('div');
-                        div.className = 'location-suggestion-item';
-
-                        let icon = '📍';
-                        if (item.type === 'district') icon = '🏛️';
-                        else if (item.type === 'city') icon = '🏙️';
-                        else if (item.type === 'town') icon = '🏘️';
-                        else if (item.type === 'village') icon = '🌾';
-
-                        div.innerHTML = `
-                            <span class="suggestion-icon">${icon}</span>
-                            <div class="suggestion-text">
-                                <span class="suggestion-name">${item.name}</span>
-                                <span class="suggestion-meta">${item.display || item.type}</span>
-                            </div>
-                        `;
-
-                        div.addEventListener('click', () => {
-                            locInput.value = item.name;
-                            suggestionsBox.style.display = 'none';
-                            if (searchForm) {
-                                searchForm.submit();
-                            }
+                        suggestionsBox.innerHTML = '';
+                        data.results.forEach(item => {
+                            const div = document.createElement('div');
+                            div.className = 'location-suggestion-item';
+                            div.innerHTML = `
+                                <span style="font-size: 1.1rem;">🏛️</span>
+                                <div>
+                                    <div style="font-weight: 700;">${item.name}</div>
+                                    <div style="font-size: 0.74rem; color: #64748b;">${item.type.toUpperCase()} &bull; ${item.state || 'Tamil Nadu'}</div>
+                                </div>
+                            `;
+                            div.addEventListener('click', () => {
+                                locInput.value = item.name;
+                                suggestionsBox.style.display = 'none';
+                                document.getElementById('tailorSearchForm').submit();
+                            });
+                            suggestionsBox.appendChild(div);
                         });
-
-                        suggestionsBox.appendChild(div);
+                        suggestionsBox.style.display = 'block';
+                    })
+                    .catch(err => {
+                        console.error('Location search error:', err);
                     });
-
-                    suggestionsBox.style.display = 'block';
-                } catch (err) {
-                    console.error('Location search error:', err);
-                }
             }, 250);
         });
 
-        // Close suggestions on outside click
-        document.addEventListener('click', (e) => {
+        document.addEventListener('click', e => {
             if (!locInput.contains(e.target) && !suggestionsBox.contains(e.target)) {
                 suggestionsBox.style.display = 'none';
             }
         });
-
-        // Re-show suggestions on focus if populated
-        locInput.addEventListener('focus', () => {
-            if (suggestionsBox.children.length > 0 && locInput.value.trim().length >= 2) {
-                suggestionsBox.style.display = 'block';
-            }
-        });
-    }
-
-    // ── Preserve URL params into cascading dropdowns if present ──
-    const urlParams = new URLSearchParams(window.location.search);
-    const districtId = urlParams.get('district_id');
-    const talukId = urlParams.get('taluk_id');
-
-    if (window.locationCascade && districtId) {
-        setTimeout(async () => {
-            const distSelect = document.getElementById('district_id');
-            if (distSelect) {
-                distSelect.value = districtId;
-                await window.locationCascade.onDistrictChange();
-                if (talukId) {
-                    const talukSelect = document.getElementById('taluk_id');
-                    if (talukSelect) {
-                        talukSelect.value = talukId;
-                        await window.locationCascade.onTalukChange();
-                    }
-                }
-            }
-        }, 300);
     }
 });
 </script>

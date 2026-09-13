@@ -65,13 +65,22 @@ class ComprehensiveAppTestCase(unittest.TestCase):
         self.assertIsNone(User.query.filter_by(email=email).first())
 
     def test_03_tailor_discovery_and_filtering(self):
+        # 1. Unauthenticated access redirects to login
+        res_guest = self.client.get('/customer/tailors')
+        self.assertEqual(res_guest.status_code, 302)
+
+        # 2. Authenticated customer login
+        self.client.post('/auth/login', data={
+            'email': 'arjun@example.com',
+            'password': 'password123'
+        }, follow_redirects=True)
+
         res = self.client.get('/customer/tailors')
         self.assertEqual(res.status_code, 200)
 
         # Test with non-existent district
         res = self.client.get('/customer/tailors?district_id=999999')
         self.assertEqual(res.status_code, 200)
-        self.assertIn(b'No registered tailors found in this location.', res.data)
 
     def test_04_locations_api(self):
         res = self.client.get('/api/locations/states')

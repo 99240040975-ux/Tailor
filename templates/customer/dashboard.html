@@ -1,22 +1,141 @@
 {% extends "base.html" %}
 
-{% block title %}Customer Dashboard | Local Tailor Connect{% endblock %}
+{% block title %}Dashboard | TailorConnect — Your Local Tailor, Reimagined{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/3d-home.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/3d-elements.css') }}">
+<style>
+.stat-card {
+    transition: transform 0.28s ease, box-shadow 0.28s ease;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.88);
+    backdrop-filter: blur(14px);
+    border: 1.5px solid rgba(129, 140, 248, 0.2);
+}
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 16px 40px rgba(100, 60, 180, 0.12);
+}
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container">
-    <div class="dashboard-header">
-        <div class="dashboard-title">
-            <h1>Hello, <span class="gradient-text">{{ current_user.name }}</span></h1>
-            <p>Track your custom garments, manage measurement profiles, and connect with artisans.</p>
+<div class="container" style="padding-top: 1.5rem;">
+
+    <!-- =========================================================
+         3D INTERACTIVE SHOWCASE (WITH MULTIPLE 3D DESIGNS)
+         ========================================================= -->
+    <div class="dashboard-3d-showcase">
+        <div class="bg-blob blob-pink" style="top: -60px; right: -40px; width: 280px; height: 280px;"></div>
+        <div class="bg-blob blob-blue" style="bottom: -50px; left: -50px; width: 260px; height: 260px;"></div>
+
+        <!-- Left Information -->
+        <div class="dashboard-showcase-content">
+            <div class="showcase-badge">
+                <span class="pill-dot" style="display:inline-block; width:7px; height:7px; border-radius:50%; background:#f472b6;"></span>
+                3D CRAFTSMANSHIP SUITE • WELCOME BACK
+            </div>
+
+            <h1 class="dashboard-showcase-title">
+                Hello, <span class="gradient-text">{{ current_user.name.split()[0] }}.</span>
+            </h1>
+
+            <p class="dashboard-showcase-sub">
+                Explore verified Tamil Nadu artisans on the live map, manage your precision measurements, and monitor live tailoring orders.
+            </p>
+
+            <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px;">
+                <a href="{{ url_for('customer.tailors') }}" class="btn-primary" style="padding: 11px 22px; font-size: 0.9rem;">
+                    Find Tailors in Tamil Nadu 📍
+                </a>
+                <a href="{{ url_for('orders.create_order') }}" class="btn-ghost" style="padding: 11px 20px; font-size: 0.9rem;">
+                    + Custom Order
+                </a>
+            </div>
+
+            <!-- Design Switcher Toolbar -->
+            <div class="design-switcher-box">
+                <span class="design-switcher-label">Select 3D Design:</span>
+                <button type="button" class="design-switch-btn active" data-design="suit">
+                    👔 Bespoke Suit
+                </button>
+                <button type="button" class="design-switch-btn" data-design="machine">
+                    ⚙️ Sewing Machine
+                </button>
+                <button type="button" class="design-switch-btn" data-design="shears">
+                    ✂️ Master Shears
+                </button>
+                <button type="button" class="design-switch-btn" data-design="fabric">
+                    🧵 Silk Bolts
+                </button>
+            </div>
         </div>
-        <div style="display: flex; gap: 12px;">
-            <a href="{{ url_for('orders.create_order') }}" class="btn btn-primary">+ Place New Order</a>
-            <a href="{{ url_for('measurements.add_measurement') }}" class="btn btn-secondary">+ Add Measurements</a>
+
+        <!-- Right 3D Floating Stage with Switchable Designs -->
+        <div class="dashboard-stage-wrap" aria-hidden="true">
+            <div class="orbit-ring ring-md" style="width: 280px; height: 280px;"></div>
+            <div class="orbit-ring ring-sm" style="width: 200px; height: 200px;"></div>
+
+            <!-- Floating Top Chip -->
+            <div class="dash-chip dash-chip-top">
+                <span>📏</span>
+                <span>Smart Measurement Vault Active</span>
+            </div>
+
+            <!-- DESIGN 1: BESPOKE SUIT -->
+            <div id="design-suit" class="active-3d-model model-suit">
+                <div class="suit-body">
+                    <div class="suit-lapel-left"></div>
+                    <div class="suit-lapel-right"></div>
+                    <div class="suit-tie"></div>
+                    <div class="suit-pocket"></div>
+                    <div class="suit-buttons">
+                        <div class="clay-gold-btn"></div>
+                        <div class="clay-gold-btn"></div>
+                        <div class="clay-gold-btn"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DESIGN 2: SEWING MACHINE -->
+            <div id="design-machine" class="model-machine" style="display: none;">
+                <div class="sm-base"></div>
+                <div class="sm-arm-pillar"></div>
+                <div class="sm-arm-top"></div>
+                <div class="sm-needle-bar"></div>
+                <div class="sm-wheel"></div>
+                <div class="sm-spool"></div>
+            </div>
+
+            <!-- DESIGN 3: GOLDEN SHEARS -->
+            <div id="design-shears" class="model-shears" style="display: none;">
+                <div class="shears-pivot"></div>
+                <div class="blade-left"></div>
+                <div class="blade-right"></div>
+                <div class="shears-handle-left"></div>
+                <div class="shears-handle-right"></div>
+                <div class="tape-ribbon"></div>
+            </div>
+
+            <!-- DESIGN 4: SILK FABRIC BOLTS -->
+            <div id="design-fabric" class="model-fabric" style="display: none;">
+                <div class="fabric-bolt-1"></div>
+                <div class="fabric-bolt-2"></div>
+                <div class="fabric-bolt-3"></div>
+                <div class="spool-floating"></div>
+            </div>
+
+            <!-- Floating Bottom Chip -->
+            <div class="dash-chip dash-chip-bottom">
+                <span>📍</span>
+                <span>Live Tamil Nadu Tailor Network</span>
+            </div>
         </div>
     </div>
 
-    <!-- Quick Stats Cards -->
-    <div class="stats-grid">
+    <!-- Quick Stats Cards with 3D Floating Feel -->
+    <div class="stats-grid" style="margin-bottom: 3rem;">
         <div class="stat-card">
             <div class="stat-icon stat-icon-indigo">🧵</div>
             <div class="stat-info">
@@ -60,7 +179,7 @@
         {% if active_orders %}
             <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 20px;">
                 {% for order in active_orders %}
-                <div class="glass-card glass-card-interactive" style="display: flex; flex-direction: column; justify-content: space-between;">
+                <div class="glass-card glass-card-interactive" style="display: flex; flex-direction: column; justify-content: space-between; border-radius: 20px; border: 1.5px solid rgba(129,140,248,0.2);">
                     <div>
                         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
                             <div>
@@ -102,35 +221,38 @@
                 {% endfor %}
             </div>
         {% else %}
-            <div class="glass-card" style="text-align: center; padding: 48px 24px;">
+            <div class="glass-card" style="text-align: center; padding: 48px 24px; border-radius: 20px; border: 1.5px solid rgba(129,140,248,0.2);">
                 <div style="font-size: 40px; margin-bottom: 12px;">🪡</div>
                 <h3>No Active Orders</h3>
                 <p style="color: var(--text-secondary); max-width: 450px; margin: 8px auto 20px;">
-                    Ready for a sharp custom fit or need an alteration? Browse top-rated local tailors and place your request today.
+                    Ready for a sharp custom fit or need an alteration? Browse verified local tailors in Tamil Nadu and place your request today.
                 </p>
-                <a href="{{ url_for('orders.create_order') }}" class="btn btn-primary">Start a New Order &rarr;</a>
+                <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+                    <a href="{{ url_for('customer.tailors') }}" class="btn btn-primary">Find Tamil Nadu Tailors 📍</a>
+                    <a href="{{ url_for('orders.create_order') }}" class="btn btn-secondary">Start a New Order &rarr;</a>
+                </div>
             </div>
         {% endif %}
     </div>
 
     <!-- Recommended Tailors -->
     {% if top_tailors %}
-    <div>
+    <div style="margin-bottom: 48px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h2>Recommended Tailors Near You</h2>
-            <a href="{{ url_for('customer.tailors') }}" class="btn btn-secondary btn-sm">Browse All &rarr;</a>
+            <h2>Recommended Tailors Across <span class="gradient-text">Tamil Nadu</span></h2>
+            <a href="{{ url_for('customer.tailors') }}" class="btn btn-secondary btn-sm">Browse Live Map &rarr;</a>
         </div>
 
         <div class="tailors-grid">
             {% for tailor in top_tailors %}
-            <div class="tailor-card">
+            <div class="tailor-card" style="border-radius: 20px; border: 1.5px solid rgba(129,140,248,0.2);">
                 <div>
                     <div class="tailor-top">
-                        <div class="tailor-avatar">🧵</div>
+                        <div class="tailor-avatar" style="font-size: 1.6rem; display: grid; place-items: center;">🧵</div>
                         <div>
                             <h3 style="font-size: 1.1rem;">{{ tailor.shop_name }}</h3>
                             <div style="color: var(--text-secondary); font-size: 0.85rem;">
-                                📍 {{ tailor.city or 'City' }} &bull; {{ tailor.experience }} yrs
+                                📍 {{ tailor.city or 'Tamil Nadu' }} &bull; {{ tailor.experience }} yrs
                             </div>
                             <div class="rating-stars" style="margin-top: 4px;">
                                 ★ {{ tailor.rating }} <span style="font-size: 0.8rem; color: var(--text-muted);">({{ tailor.total_reviews }})</span>
@@ -147,7 +269,7 @@
                 </div>
                 <div style="border-top: 1px solid var(--border-glass); padding-top: 12px; display: flex; justify-content: space-between; align-items: center;">
                     <span style="font-weight: 600; font-size: 0.9rem;">{{ tailor.price_range or 'Custom' }}</span>
-                    <a href="{{ url_for('orders.create_order', tailor_id=tailor.id) }}" class="btn btn-primary btn-sm">Order Fit</a>
+                    <a href="{{ url_for('orders.create_order', tailor_id=tailor.id) }}" class="btn btn-primary btn-sm">Select & Order ✂️</a>
                 </div>
             </div>
             {% endfor %}
@@ -155,4 +277,44 @@
     </div>
     {% endif %}
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // 3D Design Switcher Logic
+    const switchBtns = document.querySelectorAll('.design-switch-btn');
+    const models = {
+        suit: document.getElementById('design-suit'),
+        machine: document.getElementById('design-machine'),
+        shears: document.getElementById('design-shears'),
+        fabric: document.getElementById('design-fabric')
+    };
+
+    switchBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const chosen = btn.getAttribute('data-design');
+
+            // Switch active button
+            switchBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            // Switch visible 3D model
+            Object.keys(models).forEach(key => {
+                if (models[key]) {
+                    if (key === chosen) {
+                        models[key].style.display = 'block';
+                        models[key].style.animation = 'none';
+                        // Trigger reflow to restart animation smoothly
+                        void models[key].offsetWidth;
+                        models[key].style.animation = 'floatY 5s ease-in-out infinite';
+                    } else {
+                        models[key].style.display = 'none';
+                    }
+                }
+            });
+        });
+    });
+});
+</script>
 {% endblock %}
